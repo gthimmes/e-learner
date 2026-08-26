@@ -16,6 +16,8 @@ jobs:
       MAX_UPLOAD_MB: "50"
       APP_URL: http://localhost:3100
       E2E_PORT: "3100"
+      OIDC_ISSUER: http://localhost:3400
+      OIDC_CLIENT_ID: e-learner
       CI: "true"
     steps:
       - uses: actions/checkout@v4

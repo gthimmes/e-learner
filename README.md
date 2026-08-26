@@ -33,10 +33,15 @@ Or register fresh — the **first account created becomes the admin**.
 | Learning | Public catalog; self-enrollment; course player with outline and completion state; mark complete & continue; next/previous; media playback position memory; My Learning with resume; course completion; printable certificate |
 | Instructor | Dashboard with enrollment and completion counts; per-course learner progress; enroll by email; CSV export; per-quiz analytics (pass rate, average, hardest questions) |
 | Cohorts &amp; community | Cohorts with start / due / end dates; overdue flags for learners and instructors; due-date reminder script (`npx tsx scripts/send-reminders.ts`); per-lesson discussion with replies and moderation |
-| Account | Password reset by email (console mailer in dev, SMTP via `SMTP_URL` in prod); rate-limited sign-in and reset requests |
-| Admin | User list and role management |
+| Account | Password reset by email (console mailer in dev, SMTP via `SMTP_URL` in prod); rate-limited sign-in and reset requests; **SSO via any OpenID Connect provider** (`OIDC_*` env; mock IdP in `scripts/mock-oidc.mjs`) |
+| Organizations | Private per-organization catalogs: org members author org-only courses, outsiders get 404; org admin console (`/org`) for members and courses; platform admins manage orgs at `/admin/orgs`; **co-authors** per course |
+| Admin | User list with role, organization and org-admin management |
 
-Roadmap status: **Phases 1–2 shipped; Phase 3 in progress** (v0.7 cohorts &amp; community done; organizations, interop and commerce next) — see [ROADMAP.md](docs/ROADMAP.md). CI runs lint, typecheck, unit, build and e2e on every push.
+Roadmap status: **Phases 1–2 shipped; Phase 3 in progress** (v0.7 cohorts &amp; community ✅, v0.8 organizations &amp; SSO ✅; v0.9 interop and v1.0 commerce next) — see [ROADMAP.md](docs/ROADMAP.md). CI runs lint, typecheck, unit, build and e2e on every push.
+
+### SSO setup
+
+Set `OIDC_ISSUER`, `OIDC_CLIENT_ID` and (if your IdP requires it) `OIDC_CLIENT_SECRET`; register `${APP_URL}/api/auth/oidc/callback` as the redirect URI. Optional: `OIDC_ORG_SLUG` auto-joins SSO users to an organization, `OIDC_BUTTON_LABEL` changes the button text. Users are matched by email; new users are created as learners. For local testing run `node scripts/mock-oidc.mjs` with `OIDC_ISSUER=http://localhost:3400 OIDC_CLIENT_ID=e-learner`.
 
 ## Testing
 

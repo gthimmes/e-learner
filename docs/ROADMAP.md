@@ -5,8 +5,9 @@ shippable release; nothing in a later phase is a prerequisite for using an earli
 
 **Status (2026-08-25):** Phase 1 ✅ shipped · Phase 2 ✅ shipped (v0.4–v0.6, all listed
 requirements) · Phase 3 🔨 in progress — v0.7 ✅ (cohorts with due dates + reminders,
-per-lesson discussion, password reset, rate-limited auth, CI on every push); v0.8–v1.0 next.
-Tests: unit (grading), HTTP smoke, Playwright e2e (main flow + password reset).
+per-lesson discussion, password reset, rate-limited auth, CI on every push) · v0.8 ✅
+(organizations with isolated catalogs and org admins, co-authors, OIDC SSO) · v0.9–v1.0 next.
+Tests: unit (grading), HTTP smoke (~50 checks), Playwright e2e (main flow, password reset, SSO).
 
 ## Phase 1 — Learn (v0.1 → v0.3) · *content courses end-to-end*
 

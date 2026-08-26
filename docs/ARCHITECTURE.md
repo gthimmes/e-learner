@@ -69,6 +69,12 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 | `Comment` | lessonId, userId, parentId (one level), body, deletedAt | Phase 3 — soft-deleted; instructor/admin moderate |
 | `PasswordReset` | userId, tokenHash (sha256), expiresAt, usedAt | Phase 3 — single-use, 60-minute TTL |
 
+### Organizations, co-authors and SSO (v0.8)
+
+- `Organization` with `User.organizationId` / `User.orgAdmin` and `Course.organizationId`. A user belongs to at most one org; courses created by org members are private to that org. `visibleCoursesWhere(user)` scopes the catalog; `canViewCourse` gates landing/enroll (404 for outsiders).
+- `CourseAuthor` join for co-authors. `canEditCourse` = platform admin ∨ instructor ∨ co-author ∨ org admin of the course's org. All server actions go through `assertCourseAccess`/`assertModuleAccess`/`assertLessonAccess`, which select `accessSelect` (instructor, org, co-authors).
+- **OIDC SSO** (`lib/oidc.ts`): discovery → authorization code + PKCE → ID-token verification against the IdP JWKS (`jose`), nonce/state in a signed 10-minute cookie. Users are matched/created by email; `OIDC_ORG_SLUG` auto-joins an org. `scripts/mock-oidc.mjs` is a self-contained IdP for dev and e2e.
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).
