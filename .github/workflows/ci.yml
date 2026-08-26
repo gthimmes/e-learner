@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npx prisma migrate deploy
       - run: npm run db:seed
       - run: npm run lint
