@@ -3,6 +3,8 @@ import { requireRole } from "@/lib/auth";
 import { getCourseForAuthor, getLessonForAuthor } from "@/lib/courses";
 import { deleteLesson, moveLessonToModule } from "@/lib/actions/courses";
 import { LessonForm } from "@/components/LessonForm";
+import { QuestionEditor } from "@/components/QuestionEditor";
+import { QuizStats } from "@/components/QuizStats";
 import { Card, LinkButton, PageHeader, Select } from "@/components/ui";
 import { SubmitButton } from "@/components/SubmitButton";
 
@@ -36,11 +38,25 @@ export default async function LessonEditorPage({ params }: { params: Promise<{ c
       />
 
       <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
-        <Card>
-          <LessonForm lesson={lesson} />
-        </Card>
+        <div className="space-y-8">
+          <Card>
+            <LessonForm lesson={lesson} />
+          </Card>
+          {lesson.type === "QUIZ" ? (
+            <section>
+              <h2 className="mb-3 text-lg font-semibold">Questions</h2>
+              <QuestionEditor lessonId={lesson.id} questions={lesson.questions} />
+            </section>
+          ) : null}
+        </div>
 
         <aside className="space-y-6">
+          {lesson.type === "QUIZ" ? (
+            <Card>
+              <h2 className="mb-3 text-sm font-semibold">Quiz results</h2>
+              <QuizStats lessonId={lesson.id} />
+            </Card>
+          ) : null}
           <Card>
             <h2 className="text-sm font-semibold">Move to module</h2>
             <form action={moveLessonToModule} className="mt-2 flex gap-2">

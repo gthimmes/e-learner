@@ -25,7 +25,10 @@ export default async function CourseDonePage({ params }: { params: Promise<{ slu
             : `You've completed ${ctx.progressPct}% of “${ctx.course.title}”. Finish the remaining lessons to complete the course.`}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <LinkButton href="/learn">My Learning</LinkButton>
+          {complete ? <LinkButton href={`/learn/${slug}/certificate`}>🎓 View certificate</LinkButton> : null}
+          <LinkButton href="/learn" variant={complete ? "secondary" : "primary"}>
+            My Learning
+          </LinkButton>
           <LinkButton href={`/learn/${slug}`} variant="secondary">
             {complete ? "Review the course" : "Continue"}
           </LinkButton>

@@ -6,14 +6,21 @@ import { getLearnerContext, isLessonUnlocked } from "@/lib/learning";
 import { completeLesson, uncompleteLesson } from "@/lib/actions/learning";
 import { Markdown } from "@/components/Markdown";
 import { MediaPlayer } from "@/components/MediaPlayer";
+import { QuizPlayer } from "@/components/QuizPlayer";
 import { TrackLesson } from "@/components/TrackLesson";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Badge, LinkButton, ProgressBar } from "@/components/ui";
 import { LESSON_TYPE_ICONS, LESSON_TYPE_LABELS, type LessonType } from "@/lib/constants";
 import { cn, formatDuration } from "@/lib/utils";
 
-export default async function LessonPlayerPage({ params }: { params: Promise<{ slug: string; lessonId: string }> }) {
-  const { slug, lessonId } = await params;
+export default async function LessonPlayerPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string; lessonId: string }>;
+  searchParams: Promise<{ attempt?: string }>;
+}) {
+  const [{ slug, lessonId }, { attempt }] = await Promise.all([params, searchParams]);
   const user = await requireUser(`/learn/${slug}/${lessonId}`);
   const ctx = await getLearnerContext(user.id, slug);
   if (!ctx) notFound();
@@ -27,8 +34,11 @@ export default async function LessonPlayerPage({ params }: { params: Promise<{ s
   const prev = ctx.lessons[idx - 1];
   const next = ctx.lessons[idx + 1];
   const isDone = ctx.completed.has(lesson.id);
+  const isQuiz = lesson.type === "QUIZ";
   const unlocked = isLessonUnlocked(ctx, lesson.id) || isAuthor;
   const doneCount = ctx.lessons.filter((l) => ctx.completed.has(l.id)).length;
+  const basePath = `/learn/${slug}/${lesson.id}`;
+  const courseComplete = !!ctx.enrollment?.completedAt;
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 lg:flex-row">
@@ -49,6 +59,11 @@ export default async function LessonPlayerPage({ params }: { params: Promise<{ s
               <span>{ctx.progressPct}%</span>
             </div>
             <ProgressBar value={ctx.progressPct} className="mt-1.5" />
+            {courseComplete ? (
+              <Link href={`/learn/${slug}/certificate`} className="mt-2 block text-xs text-indigo-600 hover:underline">
+                🎓 View certificate
+              </Link>
+            ) : null}
           </div>
           <nav className="max-h-[60vh] overflow-y-auto p-2 lg:max-h-[calc(100vh-14rem)]" aria-label="Course outline">
             {ctx.course.modules.map((m, mi) => (
@@ -121,11 +136,7 @@ export default async function LessonPlayerPage({ params }: { params: Promise<{ s
               <div className="mt-6">
                 <Markdown>{lesson.body}</Markdown>
               </div>
-              {lesson.type === "QUIZ" ? (
-                <p className="mt-6 rounded-lg bg-indigo-50 p-4 text-sm text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300">
-                  Quizzes arrive in the next release. This lesson will be completed by passing the quiz.
-                </p>
-              ) : null}
+              {isQuiz ? <QuizPlayer lesson={lesson} enrollmentId={ctx.enrollment?.id ?? null} attemptId={attempt} basePath={basePath} /> : null}
             </>
           )}
         </div>
@@ -140,7 +151,7 @@ export default async function LessonPlayerPage({ params }: { params: Promise<{ s
             <span />
           )}
           <div className="flex items-center gap-2">
-            {ctx.enrollment && unlocked && lesson.type !== "QUIZ" ? (
+            {ctx.enrollment && unlocked && !isQuiz ? (
               isDone ? (
                 <>
                   <form action={uncompleteLesson}>
@@ -163,7 +174,13 @@ export default async function LessonPlayerPage({ params }: { params: Promise<{ s
                 </form>
               )
             ) : next ? (
-              <LinkButton href={`/learn/${slug}/${next.id}`}>Next: {next.title} →</LinkButton>
+              <LinkButton href={`/learn/${slug}/${next.id}`} variant={isQuiz && !isDone && ctx.enrollment ? "secondary" : "primary"}>
+                Next: {next.title} →
+              </LinkButton>
+            ) : ctx.enrollment ? (
+              <LinkButton href={`/learn/${slug}/done`} variant={isQuiz && !isDone ? "secondary" : "primary"}>
+                Finish →
+              </LinkButton>
             ) : null}
           </div>
         </div>

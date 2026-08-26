@@ -156,6 +156,68 @@ Assessment is on the roadmap: quizzes that gate completion and issue certificate
 
 Thanks for taking the tour — now go build something!`,
                 },
+                {
+                  title: "Knowledge check",
+                  type: "QUIZ",
+                  position: 1,
+                  durationMin: 5,
+                  passingScore: 70,
+                  maxAttempts: 0,
+                  showAnswers: true,
+                  body: "Answer all questions. You need **70%** to pass and complete the course.",
+                  questions: {
+                    create: [
+                      {
+                        type: "SINGLE",
+                        position: 0,
+                        points: 1,
+                        prompt: "What is the recommended maximum length of a single lesson?",
+                        explanation: "One idea per lesson, under ten minutes.",
+                        choices: {
+                          create: [
+                            { text: "Under 10 minutes", isCorrect: true, position: 0 },
+                            { text: "About 30 minutes", isCorrect: false, position: 1 },
+                            { text: "As long as it takes", isCorrect: false, position: 2 },
+                          ],
+                        },
+                      },
+                      {
+                        type: "MULTI",
+                        position: 1,
+                        points: 2,
+                        prompt: "Which media types does e-learner support in a lesson? (select all that apply)",
+                        choices: {
+                          create: [
+                            { text: "Video", isCorrect: true, position: 0 },
+                            { text: "Audio", isCorrect: true, position: 1 },
+                            { text: "Live webinars", isCorrect: false, position: 2 },
+                            { text: "Images", isCorrect: true, position: 3 },
+                          ],
+                        },
+                      },
+                      {
+                        type: "TRUE_FALSE",
+                        position: 2,
+                        points: 1,
+                        prompt: "Draft courses are visible in the public catalog.",
+                        explanation: "Only published courses appear in the catalog.",
+                        choices: {
+                          create: [
+                            { text: "True", isCorrect: false, position: 0 },
+                            { text: "False", isCorrect: true, position: 1 },
+                          ],
+                        },
+                      },
+                      {
+                        type: "SHORT",
+                        position: 3,
+                        points: 1,
+                        prompt: "What markup language are lessons written in?",
+                        answerText: "Markdown\nmd\nGFM",
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
