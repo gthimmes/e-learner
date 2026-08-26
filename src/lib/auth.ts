@@ -21,6 +21,8 @@ export type SessionUser = {
   email: string;
   name: string;
   role: Role;
+  organizationId: string | null;
+  orgAdmin: boolean;
 };
 
 export async function hashPassword(password: string) {
@@ -62,7 +64,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
     if (!payload.sub) return null;
     const user = await db.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, organizationId: true, orgAdmin: true },
     });
     return user ? { ...user, role: user.role as Role } : null;
   } catch {

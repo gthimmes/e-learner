@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCourseBySlug, courseStats, canEditCourse } from "@/lib/courses";
+import { getCourseBySlug, courseStats, canEditCourse, canViewCourse } from "@/lib/courses";
 import { getCurrentUser } from "@/lib/auth";
 import { getEnrollment } from "@/lib/learning";
 import { enroll } from "@/lib/actions/learning";
@@ -15,7 +15,7 @@ export default async function CourseLandingPage({ params }: { params: Promise<{ 
   const [course, user] = await Promise.all([getCourseBySlug(slug), getCurrentUser()]);
   if (!course) notFound();
   const isAuthor = !!user && canEditCourse(user, course);
-  if (course.status !== "PUBLISHED" && !isAuthor) notFound();
+  if (!canViewCourse(user, course)) notFound(); // draft, or private to another organization
 
   const stats = courseStats(course);
   const enrollment = user ? await getEnrollment(user.id, course.id) : null;
@@ -27,6 +27,7 @@ export default async function CourseLandingPage({ params }: { params: Promise<{ 
         <div>
           <div className="mb-2 flex items-center gap-2">
             {course.status !== "PUBLISHED" ? <StatusBadge status={course.status} /> : null}
+            {course.organization ? <Badge tone="info">🔒 {course.organization.name} only</Badge> : null}
             {isAuthor ? <Badge tone="info">You are the author</Badge> : null}
           </div>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{course.title}</h1>

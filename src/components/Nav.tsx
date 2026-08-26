@@ -19,6 +19,7 @@ export async function Nav() {
             <Link href="/" className={link}>Catalog</Link>
             {user ? <Link href="/learn" className={link}>My Learning</Link> : null}
             {canAuthor(user) ? <Link href="/author" className={link}>Author</Link> : null}
+            {user?.orgAdmin ? <Link href="/org" className={link}>Organization</Link> : null}
             {isAdmin(user) ? <Link href="/admin/users" className={link}>Admin</Link> : null}
           </nav>
         </div>

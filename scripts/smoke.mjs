@@ -30,6 +30,9 @@ const videoLesson = course.modules[0].lessons[1];
 const instructor = await cookieFor("instructor@example.com");
 const learner = await cookieFor("learner@example.com");
 const admin = await cookieFor("admin@example.com");
+const orgAdmin = await cookieFor("orgadmin@acme.example.com");
+const orgStaff = await cookieFor("staff@acme.example.com");
+const acme = await db.course.findUnique({ where: { slug: "acme-onboarding" } });
 
 // Public
 await check("catalog (anon)", "/", { contains: ["Course catalog", "Introduction to Online Teaching", "Get started"] });
@@ -65,6 +68,26 @@ await check("author preview", `/learn/${course.slug}/${lesson0.id}`, { cookie: i
 // Admin
 await check("admin users", "/admin/users", { cookie: admin, contains: ["Ada Admin", "Ian Instructor", "Lee Learner", "(you)"] });
 await check("admin sees all courses", "/author", { cookie: admin, contains: ["by Ian Instructor"] });
+
+// Organizations (ADMIN-6, AUTHOR-12)
+{
+  const anon = await check("catalog hides org course (anon)", "/", { contains: ["Introduction to Online Teaching"] });
+  if (anon.text.includes("Acme Onboarding")) { failures++; console.log("FAIL anon catalog leaks org course"); }
+  const pub = await check("catalog hides org course (public learner)", "/", { cookie: learner });
+  if (pub.text.includes("Acme Onboarding")) { failures++; console.log("FAIL public learner sees org course"); }
+  await check("catalog shows org course to member", "/", { cookie: orgStaff, contains: ["Acme Onboarding", "Acme Corp only"] });
+  await check("org landing 404 for outsider", "/courses/acme-onboarding", { cookie: learner, expect: 404 });
+  await check("org landing 404 for anon", "/courses/acme-onboarding", { expect: 404 });
+  await check("org landing ok for member", "/courses/acme-onboarding", { cookie: orgStaff, contains: ["Enroll now", "Acme Corp only"] });
+  await check("org console for org admin", "/org", { cookie: orgAdmin, contains: ["Acme Corp", "Members", "Add members by email", "Acme Onboarding"] });
+  await check("org console denied for staff", "/org", { cookie: orgStaff, expect: 307 });
+  await check("org admin edits org course", `/author/${acme.id}`, { cookie: orgAdmin, contains: ["Co-authors", "private to Acme Corp"] });
+  await check("outside instructor cannot edit org course", `/author/${acme.id}`, { cookie: instructor, expect: 404 });
+  await check("admin orgs list", "/admin/orgs", { cookie: admin, contains: ["Acme Corp", "New organization"] });
+  await check("admin org detail", `/admin/orgs/${(await db.organization.findUnique({ where: { slug: "acme" } })).id}`, { cookie: admin, contains: ["Olivia OrgAdmin", "Delete organization"] });
+  await check("admin users has org column", "/admin/users", { cookie: admin, contains: ["No organization", "Org admin"] });
+  await check("author sees co-author panel", `/author/${course.id}`, { cookie: instructor, contains: ["Co-authors", "public"] });
+}
 
 // CSV export (ADMIN-5)
 await check("csv export (instructor)", `/author/${course.id}/learners/export`, { cookie: instructor, contains: ["name,email,enrolled_at", "learner@example.com", "quiz: Knowledge check"] });

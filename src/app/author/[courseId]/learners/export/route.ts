@@ -1,6 +1,6 @@
 import { getCurrentUser, canAuthor } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { canEditCourse } from "@/lib/courses";
+import { accessSelect, canEditCourse } from "@/lib/courses";
 import { getCourseLearners } from "@/lib/learning";
 
 const csvCell = (v: unknown) => {
@@ -13,7 +13,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ courseId: stri
   const { courseId } = await ctx.params;
   const user = await getCurrentUser();
   if (!canAuthor(user)) return new Response("Forbidden", { status: 403 });
-  const course = await db.course.findUnique({ where: { id: courseId }, select: { slug: true, instructorId: true } });
+  const course = await db.course.findUnique({ where: { id: courseId }, select: accessSelect });
   if (!course || !user || !canEditCourse(user, course)) return new Response("Not found", { status: 404 });
 
   const [learners, quizzes] = await Promise.all([

@@ -240,7 +240,43 @@ Thanks for taking the tour — now go build something!`,
     create: { enrollmentId: enrollment.id, lessonId: firstLesson.id },
   });
 
+  // Organization demo: a private org with an org admin, an instructor and a private course.
+  const org = await db.organization.upsert({ where: { slug: "acme" }, update: { name: "Acme Corp" }, create: { slug: "acme", name: "Acme Corp" } });
+  const orgAdmin = await upsertUser("orgadmin@acme.example.com", "Olivia OrgAdmin", "INSTRUCTOR", "password123");
+  const orgLearner = await upsertUser("staff@acme.example.com", "Sam Staff", "LEARNER", "password123");
+  await db.user.updateMany({ where: { id: { in: [orgAdmin.id, orgLearner.id] } }, data: { organizationId: org.id } });
+  await db.user.update({ where: { id: orgAdmin.id }, data: { orgAdmin: true } });
+  await db.course.deleteMany({ where: { slug: "acme-onboarding" } });
+  await db.course.create({
+    data: {
+      slug: "acme-onboarding",
+      title: "Acme Onboarding",
+      summary: "Private to Acme Corp staff: tools, policies and who to ask.",
+      description: "Welcome to Acme! This course is only visible to members of the Acme organization.",
+      status: "PUBLISHED",
+      publishedAt: new Date(),
+      instructorId: orgAdmin.id,
+      organizationId: org.id,
+      modules: {
+        create: [
+          {
+            title: "Day one",
+            position: 0,
+            lessons: {
+              create: [
+                { title: "Your first week", type: "TEXT", position: 0, durationMin: 5, body: "## Welcome\n\n- Get your laptop\n- Meet your buddy\n- Read the handbook" },
+                { title: "Security basics", type: "TEXT", position: 1, durationMin: 5, body: "Use a password manager and enable 2FA everywhere." },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
+
   console.log("Seeded:");
+  console.log(`  org admin  ${orgAdmin.email} / password123  (Acme Corp)`);
+  console.log(`  org staff  ${orgLearner.email} / password123  (Acme Corp)`);
   console.log(`  admin      ${admin.email} / password123`);
   console.log(`  instructor ${instructor.email} / password123`);
   console.log(`  learner    ${learner.email} / password123`);

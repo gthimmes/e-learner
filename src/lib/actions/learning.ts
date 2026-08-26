@@ -4,15 +4,17 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { actionUser, getCurrentUser } from "@/lib/auth";
+import { accessSelect, canViewCourse } from "@/lib/courses";
 import { formStr } from "@/lib/validation";
 
 export async function enroll(formData: FormData) {
   const courseId = formStr(formData, "courseId");
   const user = await getCurrentUser();
-  const course = await db.course.findUnique({ where: { id: courseId }, select: { id: true, slug: true, status: true } });
+  const course = await db.course.findUnique({ where: { id: courseId }, select: { ...accessSelect, status: true } });
   if (!course) throw new Error("Course not found.");
   if (!user) redirect(`/login?next=${encodeURIComponent(`/courses/${course.slug}`)}`);
   if (course.status !== "PUBLISHED") throw new Error("This course is not open for enrollment.");
+  if (!canViewCourse(user, course)) throw new Error("This course is private to another organization.");
 
   await db.enrollment.upsert({
     where: { userId_courseId: { userId: user.id, courseId } },

@@ -73,6 +73,15 @@ test("author → publish → enroll → complete → quiz → certificate", asyn
   await q2.getByRole("button", { name: "Save question" }).click();
   await expect(page.locator("form[id^='q-']").nth(1).getByLabel(/^Correct answer/)).toHaveValue("markdown");
 
+  // Co-author (AUTHOR-12): add the admin, then remove.
+  await page.goto(courseUrl);
+  await page.getByLabel("Co-author email").fill("admin@example.com");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByText(/can now edit this course/)).toBeVisible();
+  await page.getByLabel("Co-author email").fill("learner@example.com");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByText(/is a learner/)).toBeVisible();
+
   // Publish.
   await page.goto(courseUrl);
   await page.getByRole("button", { name: "Publish" }).click();

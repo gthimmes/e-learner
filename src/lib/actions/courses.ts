@@ -40,6 +40,7 @@ export async function createCourse(_prev: ActionState, formData: FormData): Prom
       ...parsed.data,
       coverUrl: parsed.data.coverUrl || null,
       instructorId: user.id,
+      organizationId: user.organizationId, // org members author private-to-org courses (ADMIN-6)
       modules: { create: { title: "Module 1", position: 0 } },
     },
   });

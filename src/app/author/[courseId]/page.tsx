@@ -3,6 +3,8 @@ import { requireRole } from "@/lib/auth";
 import { getCourseForAuthor, courseStats } from "@/lib/courses";
 import { deleteCourse, setCourseStatus } from "@/lib/actions/courses";
 import { CourseForm } from "@/components/CourseForm";
+import { CoAuthorForm } from "@/components/OrgForms";
+import { removeCoAuthor } from "@/lib/actions/authors";
 import { OutlineEditor } from "@/components/OutlineEditor";
 import { Alert, Card, LinkButton, PageHeader, StatusBadge } from "@/components/ui";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -76,6 +78,32 @@ export default async function CourseEditorPage({
           <Card>
             <h2 className="mb-4 text-lg font-semibold">Details</h2>
             <CourseForm mode="edit" course={course} />
+          </Card>
+          <Card>
+            <h2 className="text-sm font-semibold">Co-authors</h2>
+            <p className="mt-1 text-xs text-zinc-500">
+              Instructor: {course.instructor.name}
+              {course.organization ? ` · private to ${course.organization.name}` : " · public"}
+            </p>
+            {course.coAuthors.length ? (
+              <ul className="mt-3 space-y-1.5 text-sm">
+                {course.coAuthors.map((a) => (
+                  <li key={a.userId} className="flex items-center justify-between gap-2">
+                    <span>
+                      {a.user.name} <span className="text-xs text-zinc-500">{a.user.email}</span>
+                    </span>
+                    <form action={removeCoAuthor}>
+                      <input type="hidden" name="courseId" value={course.id} />
+                      <input type="hidden" name="userId" value={a.userId} />
+                      <button className="text-xs text-zinc-400 hover:text-red-600">Remove</button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="mt-3">
+              <CoAuthorForm courseId={course.id} />
+            </div>
           </Card>
           <Card className="border-red-200 dark:border-red-900">
             <h2 className="text-sm font-semibold text-red-700 dark:text-red-400">Danger zone</h2>

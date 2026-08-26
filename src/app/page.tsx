@@ -1,10 +1,11 @@
 import { getPublishedCourses } from "@/lib/courses";
 import { getCurrentUser, canAuthor } from "@/lib/auth";
 import { CourseCard } from "@/components/CourseCard";
-import { EmptyState, LinkButton, PageHeader, Alert } from "@/components/ui";
+import { Badge, EmptyState, LinkButton, PageHeader, Alert } from "@/components/ui";
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
-  const [{ denied }, courses, user] = await Promise.all([searchParams, getPublishedCourses(), getCurrentUser()]);
+  const [{ denied }, user] = await Promise.all([searchParams, getCurrentUser()]);
+  const courses = await getPublishedCourses(user);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -44,6 +45,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
               instructor={c.instructor.name}
               lessonCount={c.stats.lessonCount}
               durationMin={c.stats.durationMin}
+              footer={c.organization ? <Badge tone="info">🔒 {c.organization.name} only</Badge> : undefined}
             />
           ))}
         </div>

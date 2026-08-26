@@ -18,11 +18,17 @@ model User {
   passwordHash String
   role         String   @default("LEARNER") // LEARNER | INSTRUCTOR | ADMIN
   createdAt    DateTime @default(now())
+  organizationId String?
+  orgAdmin       Boolean  @default(false)
 
   courses        Course[]
   enrollments    Enrollment[]
   comments       Comment[]
   passwordResets PasswordReset[]
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  coAuthored     CourseAuthor[]
+
+  @@index([organizationId])
 }
 
 model Course {
@@ -35,6 +41,7 @@ model Course {
   status       String    @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
   sequential   Boolean   @default(false) // Phase 2: lessons must be completed in order
   instructorId String
+  organizationId String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   publishedAt  DateTime?
@@ -43,8 +50,11 @@ model Course {
   modules     Module[]
   enrollments Enrollment[]
   cohorts     Cohort[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  coAuthors    CourseAuthor[]
 
   @@index([status])
+  @@index([organizationId])
   @@index([instructorId])
 }
 
@@ -224,4 +234,27 @@ model PasswordReset {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// ---------- Phase 3: organizations & co-authors ----------
+
+model Organization {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  users   User[]
+  courses Course[]
+}
+
+model CourseAuthor {
+  id       String @id @default(cuid())
+  courseId String
+  userId   String
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
 }
