@@ -27,6 +27,8 @@ model User {
   passwordResets PasswordReset[]
   organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   coAuthored     CourseAuthor[]
+  apiKeys        ApiKey[]
+  webhooks       Webhook[]
 
   @@index([organizationId])
 }
@@ -52,6 +54,7 @@ model Course {
   cohorts     Cohort[]
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   coAuthors    CourseAuthor[]
+  versions     CourseVersion[]
 
   @@index([status])
   @@index([organizationId])
@@ -257,4 +260,63 @@ model CourseAuthor {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, userId])
+}
+
+// ---------- Phase 3: interop (versions, API keys, webhooks) ----------
+
+model CourseVersion {
+  id          String   @id @default(cuid())
+  courseId    String
+  number      Int
+  snapshot    String // JSON of course details + modules/lessons/questions at publish time
+  note        String   @default("")
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, number])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  prefix     String // first 8 chars, shown in the UI
+  keyHash    String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  secret    String
+  events    String // comma-separated event names, "*" for all
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([userId])
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  webhookId  String
+  event      String
+  status     Int // HTTP status, 0 = network error
+  durationMs Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId, createdAt])
 }

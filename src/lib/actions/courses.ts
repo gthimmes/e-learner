@@ -7,6 +7,7 @@ import { actionAuthor } from "@/lib/auth";
 import { assertCourseAccess, assertLessonAccess, assertModuleAccess, isSlugTaken } from "@/lib/courses";
 import { courseSchema, firstIssue, formBool, formStr, lessonSchema, moduleSchema } from "@/lib/validation";
 import { slugify } from "@/lib/utils";
+import { createVersion } from "@/lib/versions";
 import type { ActionState } from "./auth";
 
 function revalidateCourse(courseId: string, slug?: string) {
@@ -87,6 +88,7 @@ export async function setCourseStatus(formData: FormData) {
     where: { id: courseId },
     data: { status, publishedAt: status === "PUBLISHED" ? new Date() : undefined },
   });
+  if (status === "PUBLISHED") await createVersion(courseId, user.id, "Published"); // AUTHOR-13
   revalidateCourse(courseId, course.slug);
   redirect(`/author/${courseId}`);
 }

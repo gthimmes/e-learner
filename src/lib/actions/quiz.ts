@@ -8,6 +8,7 @@ import { assertLessonAccess } from "@/lib/courses";
 import { getQuestions, questionInclude } from "@/lib/quiz";
 import { grade, responsesFromForm } from "@/lib/grading";
 import { markLessonComplete } from "@/lib/actions/learning";
+import { emitEvent } from "@/lib/webhooks";
 import { QUESTION_TYPES } from "@/lib/constants";
 import { formStr } from "@/lib/validation";
 
@@ -178,6 +179,7 @@ export async function submitQuiz(formData: FormData) {
     },
   });
 
+  void emitEvent("quiz.attempted", course.id, user.id, { lesson: { id: lesson.id, title: lesson.title }, quiz: { attemptId: attempt.id, score: result.score, passed } });
   if (passed) await markLessonComplete(enrollment.id, lessonId, course.id); // QUIZ-4
   revalidatePath(`/learn/${course.slug}`, "layout");
   revalidatePath("/learn");

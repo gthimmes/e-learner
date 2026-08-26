@@ -2,6 +2,8 @@
 // HTTP smoke test against the running dev server. Mints session cookies directly.
 import { SignJWT } from "jose";
 import { PrismaClient } from "@prisma/client";
+import http from "node:http";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 
 const BASE = process.env.BASE || "http://localhost:3100";
 const secret = new TextEncoder().encode("dev-only-change-me-in-production");
@@ -87,6 +89,56 @@ await check("admin sees all courses", "/author", { cookie: admin, contains: ["by
   await check("admin org detail", `/admin/orgs/${(await db.organization.findUnique({ where: { slug: "acme" } })).id}`, { cookie: admin, contains: ["Olivia OrgAdmin", "Delete organization"] });
   await check("admin users has org column", "/admin/users", { cookie: admin, contains: ["No organization", "Org admin"] });
   await check("author sees co-author panel", `/author/${course.id}`, { cookie: instructor, contains: ["Co-authors", "public"] });
+}
+
+// Interop (v0.9): API keys, REST API, webhooks, versions, SCORM
+{
+  const instructorUser = await db.user.findUnique({ where: { email: "instructor@example.com" } });
+  const plaintext = "elk_" + randomBytes(30).toString("base64url");
+  await db.apiKey.create({ data: { userId: instructorUser.id, name: "smoke", prefix: plaintext.slice(0, 12), keyHash: createHash("sha256").update(plaintext).digest("hex") } });
+  const bearer = { authorization: "Bearer " + plaintext };
+  await check("api: unauthenticated", "/api/v1/me", { expect: 401, contains: ["Unauthorized"] });
+  await check("api: bad key", "/api/v1/me", { expect: 401, headers: { authorization: "Bearer elk_nope" } });
+  await check("api: me", "/api/v1/me", { headers: bearer, contains: ["instructor@example.com", "INSTRUCTOR"] });
+  await check("api: openapi", "/api/v1/openapi.json", { contains: ["openapi", "/courses/{courseId}/xapi"] });
+  const list = await check("api: courses (public only)", "/api/v1/courses", { headers: bearer, contains: ["intro-to-online-teaching"] });
+  if (list.text.includes("acme-onboarding")) { failures++; console.log("FAIL api leaks org course"); }
+  await check("api: courses mine includes drafts", "/api/v1/courses?mine=1", { headers: bearer, contains: ["intro-to-online-teaching"] });
+  await check("api: course detail", `/api/v1/courses/${course.id}`, { headers: bearer, contains: ["modules", "Getting started", "Knowledge check"] });
+  await check("api: org course 404 for outsider", `/api/v1/courses/${acme.id}`, { headers: bearer, expect: 404 });
+  await check("api: enrollments", `/api/v1/courses/${course.id}/enrollments`, { headers: bearer, contains: ["learner@example.com", "progressPct"] });
+  await check("api: xapi statements", `/api/v1/courses/${course.id}/xapi`, { headers: bearer, contains: ["adlnet.gov/expapi/verbs/registered", "mailto:learner@example.com"] });
+
+  // Webhook: receive a signed enrollment.created when enrolling via the API.
+  const received = [];
+  const server = http.createServer((req, res) => { let b = ""; req.on("data", (c) => (b += c)); req.on("end", () => { received.push({ headers: req.headers, body: b }); res.writeHead(200); res.end("ok"); }); });
+  await new Promise((r) => server.listen(3555, r));
+  const secret = "whsec_smoke";
+  const hook = await db.webhook.create({ data: { userId: instructorUser.id, url: "http://localhost:3555/hook", secret, events: "*" } });
+  const newbie = await db.user.upsert({ where: { email: "smoke-newbie@example.com" }, update: {}, create: { email: "smoke-newbie@example.com", name: "Smoke Newbie", passwordHash: "x" } });
+  await db.enrollment.deleteMany({ where: { userId: newbie.id, courseId: course.id } });
+  await check("api: enroll by email", `/api/v1/courses/${course.id}/enrollments`, { method: "POST", headers: { ...bearer, "content-type": "application/json" }, body: JSON.stringify({ email: newbie.email }), expect: 201, contains: ["\"created\":true"] });
+  await check("api: enroll again is idempotent", `/api/v1/courses/${course.id}/enrollments`, { method: "POST", headers: { ...bearer, "content-type": "application/json" }, body: JSON.stringify({ email: newbie.email }), expect: 200, contains: ["\"created\":false"] });
+  await new Promise((r) => setTimeout(r, 1500));
+  const hit = received.find((r) => r.headers["x-elearner-event"] === "enrollment.created");
+  const sigOk = hit && hit.headers["x-elearner-signature"] === "sha256=" + createHmac("sha256", secret).update(hit.body).digest("hex");
+  console.log(`${hit && sigOk ? "PASS" : "FAIL"} webhook delivered with valid signature${hit ? "" : " (no delivery received)"}`);
+  if (!(hit && sigOk)) failures++;
+  const delivery = await db.webhookDelivery.findFirst({ where: { webhookId: hook.id } });
+  console.log(`${delivery && delivery.status === 200 ? "PASS" : "FAIL"} webhook delivery logged (status ${delivery?.status})`);
+  if (!(delivery && delivery.status === 200)) failures++;
+  server.close();
+  await db.webhook.delete({ where: { id: hook.id } });
+  await db.user.delete({ where: { id: newbie.id } });
+
+  await check("settings page", "/settings", { cookie: instructor, contains: ["API keys", "Webhooks", "smoke"] });
+  await check("versions page", `/author/${course.id}/versions`, { cookie: instructor, contains: ["Save snapshot"] });
+  const scorm = await fetch(BASE + `/author/${course.id}/scorm`, { headers: { cookie: instructor } });
+  const zipOk = scorm.status === 200 && (scorm.headers.get("content-type") || "").includes("zip") && (await scorm.arrayBuffer()).byteLength > 1000;
+  console.log(`${zipOk ? "PASS" : "FAIL"} scorm export [${scorm.status} ${scorm.headers.get("content-type")}]`);
+  if (!zipOk) failures++;
+  await check("scorm denied for learner", `/author/${course.id}/scorm`, { cookie: learner, expect: 403 });
+  await db.apiKey.deleteMany({ where: { userId: instructorUser.id, name: "smoke" } });
 }
 
 // CSV export (ADMIN-5)

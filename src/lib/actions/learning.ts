@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { actionUser, getCurrentUser } from "@/lib/auth";
 import { accessSelect, canViewCourse } from "@/lib/courses";
+import { emitEvent } from "@/lib/webhooks";
 import { formStr } from "@/lib/validation";
 
 export async function enroll(formData: FormData) {
@@ -16,11 +17,11 @@ export async function enroll(formData: FormData) {
   if (course.status !== "PUBLISHED") throw new Error("This course is not open for enrollment.");
   if (!canViewCourse(user, course)) throw new Error("This course is private to another organization.");
 
-  await db.enrollment.upsert({
-    where: { userId_courseId: { userId: user.id, courseId } },
-    create: { userId: user.id, courseId },
-    update: {},
-  });
+  const existing = await db.enrollment.findUnique({ where: { userId_courseId: { userId: user.id, courseId } }, select: { id: true } });
+  if (!existing) {
+    await db.enrollment.create({ data: { userId: user.id, courseId } });
+    void emitEvent("enrollment.created", courseId, user.id);
+  }
   revalidatePath("/learn");
   revalidatePath(`/courses/${course.slug}`);
   redirect(`/learn/${course.slug}`);
@@ -62,8 +63,14 @@ export async function markLessonComplete(enrollmentId: string, lessonId: string,
     db.lesson.count({ where: { module: { courseId } } }),
     db.lessonProgress.count({ where: { enrollmentId } }),
   ]);
+  const [enrollment, lesson] = await Promise.all([
+    db.enrollment.findUnique({ where: { id: enrollmentId }, select: { userId: true } }),
+    db.lesson.findUnique({ where: { id: lessonId }, select: { id: true, title: true } }),
+  ]);
+  if (enrollment && lesson) void emitEvent("lesson.completed", courseId, enrollment.userId, { lesson });
   if (total > 0 && done >= total) {
     await db.enrollment.update({ where: { id: enrollmentId }, data: { completedAt: new Date(), lastLessonId: lessonId } });
+    if (enrollment) void emitEvent("course.completed", courseId, enrollment.userId);
     return true;
   }
   await db.enrollment.update({ where: { id: enrollmentId }, data: { lastLessonId: lessonId } });

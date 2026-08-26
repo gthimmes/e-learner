@@ -36,8 +36,16 @@ Or register fresh — the **first account created becomes the admin**.
 | Account | Password reset by email (console mailer in dev, SMTP via `SMTP_URL` in prod); rate-limited sign-in and reset requests; **SSO via any OpenID Connect provider** (`OIDC_*` env; mock IdP in `scripts/mock-oidc.mjs`) |
 | Organizations | Private per-organization catalogs: org members author org-only courses, outsiders get 404; org admin console (`/org`) for members and courses; platform admins manage orgs at `/admin/orgs`; **co-authors** per course |
 | Admin | User list with role, organization and org-admin management |
+| Interop | **Course versions**: snapshot on every publish, manual snapshots, restore (keeps learner progress on surviving lessons); **REST API** with per-user API keys and OpenAPI description (`/api/v1/openapi.json`); **webhooks** (HMAC-signed, delivery log, test ping); **xAPI** statement export + optional live forwarding to an LRS; **SCORM 1.2** package download per course |
 
-Roadmap status: **Phases 1–2 shipped; Phase 3 in progress** (v0.7 cohorts &amp; community ✅, v0.8 organizations &amp; SSO ✅; v0.9 interop and v1.0 commerce next) — see [ROADMAP.md](docs/ROADMAP.md). CI runs lint, typecheck, unit, build and e2e on every push.
+Roadmap status: **Phases 1–2 shipped; Phase 3 in progress** (v0.7 cohorts &amp; community ✅, v0.8 organizations &amp; SSO ✅, v0.9 interop ✅; v1.0 commerce next) — see [ROADMAP.md](docs/ROADMAP.md). CI runs lint, typecheck, unit, build and e2e on every push.
+
+### REST API, webhooks, xAPI, SCORM
+
+- Create API keys under **Integrations** (instructors/admins). Call `GET /api/v1/me`, `GET /api/v1/courses[?mine=1]`, `GET /api/v1/courses/{id}`, `GET|POST /api/v1/courses/{id}/enrollments`, `GET /api/v1/courses/{id}/xapi` with `Authorization: Bearer elk_…`.
+- Webhooks POST JSON for `enrollment.created`, `lesson.completed`, `course.completed`, `quiz.attempted`; verify `X-Elearner-Signature` (`sha256=` HMAC of the raw body with the webhook secret).
+- Set `XAPI_LRS_URL` (+ `XAPI_LRS_AUTH`) to forward statements to a Learning Record Store as they happen.
+- **SCORM**: course editor → *SCORM* downloads a SCORM 1.2 zip (one SCO per lesson, bundled uploads, completion reporting).
 
 ### SSO setup
 

@@ -15,9 +15,9 @@ export default async function CourseEditorPage({
   searchParams,
 }: {
   params: Promise<{ courseId: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; restored?: string }>;
 }) {
-  const [{ courseId }, { error }] = await Promise.all([params, searchParams]);
+  const [{ courseId }, { error, restored }] = await Promise.all([params, searchParams]);
   const user = await requireRole(`/author/${courseId}`, "INSTRUCTOR", "ADMIN");
   const course = await getCourseForAuthor(courseId, user);
   if (!course) notFound();
@@ -43,6 +43,16 @@ export default async function CourseEditorPage({
             <LinkButton href={`/author/${course.id}/learners`} variant="secondary">
               Learners
             </LinkButton>
+            <LinkButton href={`/author/${course.id}/versions`} variant="secondary">
+              Versions
+            </LinkButton>
+            <a
+              href={`/author/${course.id}/scorm`}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+              title="Download a SCORM 1.2 package for another LMS"
+            >
+              ⬇ SCORM
+            </a>
             {course.status === "PUBLISHED" ? (
               <form action={setCourseStatus}>
                 <input type="hidden" name="courseId" value={course.id} />
@@ -65,6 +75,11 @@ export default async function CourseEditorPage({
       {error ? (
         <div className="mb-6">
           <Alert>{error}</Alert>
+        </div>
+      ) : null}
+      {restored ? (
+        <div className="mb-6">
+          <Alert tone="success">Restored version {restored}. The previous state was saved as a new version.</Alert>
         </div>
       ) : null}
 

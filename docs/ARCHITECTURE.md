@@ -75,6 +75,14 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - `CourseAuthor` join for co-authors. `canEditCourse` = platform admin ∨ instructor ∨ co-author ∨ org admin of the course's org. All server actions go through `assertCourseAccess`/`assertModuleAccess`/`assertLessonAccess`, which select `accessSelect` (instructor, org, co-authors).
 - **OIDC SSO** (`lib/oidc.ts`): discovery → authorization code + PKCE → ID-token verification against the IdP JWKS (`jose`), nonce/state in a signed 10-minute cookie. Users are matched/created by email; `OIDC_ORG_SLUG` auto-joins an org. `scripts/mock-oidc.mjs` is a self-contained IdP for dev and e2e.
 
+### Interop (v0.9)
+
+- **Versions** (`lib/versions.ts`): `CourseVersion.snapshot` stores the full course JSON (ids included). Created on every publish and on demand; `restoreVersion` upserts modules/lessons/questions by id so `LessonProgress` and `QuizAttempt` rows survive for lessons that still exist, and auto-snapshots the current state first.
+- **REST API** (`app/api/v1/*`, `lib/api.ts`, `lib/apikeys.ts`): keys are `elk_…` strings stored as SHA-256 hashes; `requireApiUser` accepts a key or the session cookie and reuses the same `canViewCourse`/`canEditCourse` rules. `/api/v1/openapi.json` describes the surface.
+- **Webhooks** (`lib/webhooks.ts`): `emitEvent(event, courseId, userId, extra)` is called from enroll, lesson/course completion and quiz submission. It fans out to active webhooks whose owner can edit the course, signs the body (`X-Elearner-Signature: sha256=HMAC`), logs `WebhookDelivery`, and forwards an xAPI statement to `XAPI_LRS_URL` if set. Fire-and-forget; delivery is best-effort (no retries yet).
+- **xAPI** (`lib/xapi.ts`): statement builder (`registered`, `completed`, `answered` verbs with scaled scores) plus a full rebuild from stored data for export.
+- **SCORM 1.2** (`lib/scorm.ts`): `jszip` package with `imsmanifest.xml`, one SCO page per lesson rendered via `remark` (same GFM + sanitize rules), bundled uploaded media, and a tiny SCORM API wrapper that sets `cmi.core.lesson_status`.
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).
