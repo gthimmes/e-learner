@@ -3,6 +3,9 @@
 Requirement IDs reference [REQUIREMENTS.md](./REQUIREMENTS.md). Each phase ends in a
 shippable release; nothing in a later phase is a prerequisite for using an earlier one.
 
+**Status (2026-08-25):** Phase 1 ✅ shipped · Phase 2 ✅ shipped (v0.4–v0.6, all listed
+requirements) · Phase 3 ⏳ not started. Tests: unit (grading), HTTP smoke, Playwright e2e.
+
 ## Phase 1 — Learn (v0.1 → v0.3) · *content courses end-to-end*
 
 **Goal:** an instructor can author a course from text, images, audio and video and a learner

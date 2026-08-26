@@ -24,14 +24,27 @@ Demo accounts (password `password123`):
 
 Or register fresh — the **first account created becomes the admin**.
 
-## What's in Phase 1
+## What's built
 
 | Area | Features |
 | --- | --- |
-| Authoring | Courses → modules → lessons; lesson types Reading / Video / Audio / Image / Download; Markdown (GFM) with sanitized rendering; media upload or YouTube/Vimeo links; reorder; draft → publish → archive; preview as learner |
-| Learning | Public catalog; self-enrollment; course player with outline and completion state; mark complete & continue; next/previous; My Learning with resume; course completion |
-| Instructor | Dashboard with enrollment and completion counts; per-course learner progress |
+| Authoring | Courses → modules → lessons; lesson types Reading / Video / Audio / Image / Download / **Quiz**; Markdown (GFM) with sanitized rendering; media upload or YouTube/Vimeo links; reorder; draft → publish → archive; preview as learner; sequential (locked) courses |
+| Quizzes | Question types: multiple choice, multiple select, true/false, short answer; points, explanations; pass mark, attempt limits, shuffle, answer reveal; auto-grading; attempt history; passing completes the lesson |
+| Learning | Public catalog; self-enrollment; course player with outline and completion state; mark complete & continue; next/previous; media playback position memory; My Learning with resume; course completion; printable certificate |
+| Instructor | Dashboard with enrollment and completion counts; per-course learner progress; enroll by email; CSV export; per-quiz analytics (pass rate, average, hardest questions) |
 | Admin | User list and role management |
+
+Roadmap status: **Phase 1 (Learn) and Phase 2 (Assess) shipped**; Phase 3 (Scale) is next — see [ROADMAP.md](docs/ROADMAP.md).
+
+## Testing
+
+```bash
+npm test               # unit tests (grading engine)
+npm run test:smoke     # HTTP smoke test against a running dev server on :3100 (seeded DB)
+npm run test:e2e       # Playwright end-to-end: author → publish → enroll → quiz → certificate
+```
+
+`npx playwright install chromium` once before the e2e suite.
 
 ## Stack
 

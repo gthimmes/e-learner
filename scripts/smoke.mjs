@@ -62,6 +62,11 @@ await check("author preview", `/learn/${course.slug}/${lesson0.id}`, { cookie: i
 await check("admin users", "/admin/users", { cookie: admin, contains: ["Ada Admin", "Ian Instructor", "Lee Learner", "(you)"] });
 await check("admin sees all courses", "/author", { cookie: admin, contains: ["by Ian Instructor"] });
 
+// CSV export (ADMIN-5)
+await check("csv export (instructor)", `/author/${course.id}/learners/export`, { cookie: instructor, contains: ["name,email,enrolled_at", "learner@example.com", "quiz: Knowledge check"] });
+await check("csv export denied (learner)", `/author/${course.id}/learners/export`, { cookie: learner, expect: 403 });
+await check("certificate redirects when incomplete", `/learn/${course.slug}/certificate`, { cookie: learner, expect: 307 });
+
 // Upload + media streaming
 const fd = new FormData();
 fd.append("file", new Blob([Buffer.from("hello media range test 0123456789")], { type: "text/plain" }), "notes.txt");

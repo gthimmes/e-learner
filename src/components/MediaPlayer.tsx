@@ -1,4 +1,5 @@
 import { resolveVideoEmbed } from "@/lib/utils";
+import { ResumableMedia } from "./ResumableMedia";
 
 type Props = { type: string; url: string | null | undefined; caption?: string; title?: string };
 
@@ -22,18 +23,12 @@ export function MediaPlayer({ type, url, caption, title }: Props) {
         </div>
       );
     } else if (embed) {
-      inner = (
-        <video controls preload="metadata" className="aspect-video w-full rounded-xl bg-black" src={embed.src}>
-          Your browser does not support HTML5 video.
-        </video>
-      );
+      inner = <ResumableMedia kind="video" src={embed.src} className="aspect-video w-full rounded-xl bg-black" />;
     }
   } else if (type === "AUDIO") {
     inner = (
       <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <audio controls preload="metadata" className="w-full" src={url}>
-          Your browser does not support HTML5 audio.
-        </audio>
+        <ResumableMedia kind="audio" src={url} className="w-full" />
       </div>
     );
   } else if (type === "IMAGE") {
