@@ -8,9 +8,19 @@ requirements) · Phase 3 🔨 in progress — v0.7 ✅ (cohorts with due dates +
 per-lesson discussion, password reset, rate-limited auth, CI on every push) · v0.8 ✅
 (organizations with isolated catalogs and org admins, co-authors, OIDC SSO) · v0.9 ✅ (course
 versions with restore, REST API + API keys + OpenAPI, signed webhooks, xAPI export/forwarding,
-SCORM 1.2 export) · v1.0 commerce next.
-Tests: unit (grading), HTTP smoke (~75 checks incl. API, webhook delivery, SCORM), Playwright
-e2e (main flow, password reset, SSO).
+SCORM 1.2 export) · v1.0 ✅ (paid courses via Stripe Checkout with a mock provider for
+dev/CI, coupons, refunds, sales page). **All planned milestones are shipped.**
+Tests: unit (grading), HTTP smoke (~80 checks incl. API, webhook delivery, SCORM, commerce),
+Playwright e2e (main flow, password reset, SSO, purchase + refund).
+
+### What's next (post-1.0 candidates)
+
+- Webhook retries with backoff and a dead-letter view; Redis-backed rate limiting for multi-instance deploys
+- S3 storage adapter implementation; image resizing for covers
+- Error reporting (Sentry) and product analytics events
+- Essay questions with manual grading, timed quizzes (QUIZ-7/8)
+- Learner-facing search, tags/categories in the catalog
+- Multiple orgs per user; per-org branding
 
 ## Phase 1 — Learn (v0.1 → v0.3) · *content courses end-to-end*
 

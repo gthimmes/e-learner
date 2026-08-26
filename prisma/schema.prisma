@@ -29,6 +29,7 @@ model User {
   coAuthored     CourseAuthor[]
   apiKeys        ApiKey[]
   webhooks       Webhook[]
+  purchases      Purchase[]
 
   @@index([organizationId])
 }
@@ -42,6 +43,8 @@ model Course {
   coverUrl     String?
   status       String    @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
   sequential   Boolean   @default(false) // Phase 2: lessons must be completed in order
+  priceCents   Int       @default(0) // 0 = free (Phase 3 commerce)
+  currency     String    @default("usd")
   instructorId String
   organizationId String?
   createdAt    DateTime  @default(now())
@@ -55,6 +58,8 @@ model Course {
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   coAuthors    CourseAuthor[]
   versions     CourseVersion[]
+  purchases    Purchase[]
+  coupons      Coupon[]
 
   @@index([status])
   @@index([organizationId])
@@ -319,4 +324,45 @@ model WebhookDelivery {
   webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@index([webhookId, createdAt])
+}
+
+// ---------- Phase 3: commerce ----------
+
+model Purchase {
+  id                    String    @id @default(cuid())
+  userId                String
+  courseId              String
+  amountCents           Int
+  currency              String    @default("usd")
+  status                String    @default("PENDING") // PENDING | PAID | REFUNDED | CANCELED
+  provider              String    @default("mock") // mock | stripe
+  providerSessionId     String?   @unique
+  providerPaymentId     String?
+  couponCode            String?
+  createdAt             DateTime  @default(now())
+  paidAt                DateTime?
+  refundedAt            DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, courseId])
+  @@index([courseId, status])
+}
+
+model Coupon {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  percentOff Int // 1..100
+  courseId   String? // null = valid for any course the creator can edit
+  createdById String
+  maxUses    Int       @default(0) // 0 = unlimited
+  uses       Int       @default(0)
+  expiresAt  DateTime?
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
 }

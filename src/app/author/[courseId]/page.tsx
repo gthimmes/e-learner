@@ -46,6 +46,9 @@ export default async function CourseEditorPage({
             <LinkButton href={`/author/${course.id}/versions`} variant="secondary">
               Versions
             </LinkButton>
+            <LinkButton href={`/author/${course.id}/pricing`} variant="secondary">
+              Pricing
+            </LinkButton>
             <a
               href={`/author/${course.id}/scorm`}
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"

@@ -141,6 +141,12 @@ await check("admin sees all courses", "/author", { cookie: admin, contains: ["by
   await db.apiKey.deleteMany({ where: { userId: instructorUser.id, name: "smoke" } });
 }
 
+// Commerce (v1.0)
+await check("pricing page", `/author/${course.id}/pricing`, { cookie: instructor, contains: ["Pricing &amp; sales", "New coupon", "test mode"] });
+await check("pricing denied for learner", `/author/${course.id}/pricing`, { cookie: learner, expect: 307 });
+await check("stripe webhook 404 when unconfigured", "/api/stripe/webhook", { method: "POST", expect: 404 });
+await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { cookie: learner, expect: 404 });
+
 // CSV export (ADMIN-5)
 await check("csv export (instructor)", `/author/${course.id}/learners/export`, { cookie: instructor, contains: ["name,email,enrolled_at", "learner@example.com", "quiz: Knowledge check"] });
 await check("csv export denied (learner)", `/author/${course.id}/learners/export`, { cookie: learner, expect: 403 });

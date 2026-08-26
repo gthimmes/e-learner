@@ -2,27 +2,56 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getCourseBySlug, courseStats, canEditCourse, canViewCourse } from "@/lib/courses";
 import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { getEnrollment } from "@/lib/learning";
 import { enroll } from "@/lib/actions/learning";
+import { finalizePurchase, formatMoney, payments } from "@/lib/payments";
 import { Markdown } from "@/components/Markdown";
-import { Badge, Card, LinkButton, StatusBadge } from "@/components/ui";
+import { BuyForm } from "@/components/CommerceForms";
+import { Alert, Badge, Card, LinkButton, StatusBadge } from "@/components/ui";
 import { SubmitButton } from "@/components/SubmitButton";
 import { LESSON_TYPE_ICONS, type LessonType } from "@/lib/constants";
 import { formatDuration, pct } from "@/lib/utils";
 
-export default async function CourseLandingPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function CourseLandingPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ purchase?: string; session_id?: string }>;
+}) {
+  const [{ slug }, { purchase, session_id }] = await Promise.all([params, searchParams]);
   const [course, user] = await Promise.all([getCourseBySlug(slug), getCurrentUser()]);
   if (!course) notFound();
   const isAuthor = !!user && canEditCourse(user, course);
   if (!canViewCourse(user, course)) notFound(); // draft, or private to another organization
 
+  // Returning from checkout: confirm with the provider in case the webhook hasn't arrived yet.
+  if (purchase === "success" && session_id && user) {
+    const p = await db.purchase.findUnique({ where: { providerSessionId: session_id } });
+    if (p && p.userId === user.id && p.status === "PENDING") {
+      const v = await payments.verifySession(session_id);
+      if (v.paid) await finalizePurchase(p.id, v.paymentId);
+    }
+  }
+
   const stats = courseStats(course);
   const enrollment = user ? await getEnrollment(user.id, course.id) : null;
   const progress = enrollment ? pct(enrollment.progress.length, stats.lessonCount) : 0;
+  const isPaid = course.priceCents > 0;
+  const priceLabel = formatMoney(course.priceCents, course.currency);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      {purchase === "success" && enrollment ? (
+        <div className="mb-6">
+          <Alert tone="success">Payment received — you&apos;re enrolled. Enjoy the course!</Alert>
+        </div>
+      ) : purchase === "canceled" ? (
+        <div className="mb-6">
+          <Alert tone="info">Checkout canceled. You can try again whenever you like.</Alert>
+        </div>
+      ) : null}
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         <div>
           <div className="mb-2 flex items-center gap-2">
@@ -91,18 +120,21 @@ export default async function CourseLandingPage({ params }: { params: Promise<{ 
                   {enrollment.completedAt ? "Review course" : progress > 0 ? "Continue learning" : "Start course"}
                 </LinkButton>
               </>
+            ) : course.status !== "PUBLISHED" ? (
+              <>
+                <div className="text-lg font-semibold">Not yet published</div>
+                <p className="mt-3 text-sm text-zinc-500">Publish the course to open enrollment.</p>
+              </>
+            ) : isPaid ? (
+              <BuyForm courseId={course.id} priceLabel={priceLabel} signedIn={!!user} />
             ) : (
               <form action={enroll}>
                 <input type="hidden" name="courseId" value={course.id} />
                 <div className="text-sm text-zinc-500">Free · self-paced</div>
                 <div className="mt-1 text-lg font-semibold">Ready to start?</div>
-                {course.status === "PUBLISHED" ? (
-                  <SubmitButton className="mt-4 w-full" pendingText="Enrolling…">
-                    {user ? "Enroll now" : "Sign in to enroll"}
-                  </SubmitButton>
-                ) : (
-                  <p className="mt-3 text-sm text-zinc-500">Publish the course to open enrollment.</p>
-                )}
+                <SubmitButton className="mt-4 w-full" pendingText="Enrolling…">
+                  {user ? "Enroll now" : "Sign in to enroll"}
+                </SubmitButton>
               </form>
             )}
             {isAuthor ? (

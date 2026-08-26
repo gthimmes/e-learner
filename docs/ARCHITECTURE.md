@@ -83,6 +83,13 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - **xAPI** (`lib/xapi.ts`): statement builder (`registered`, `completed`, `answered` verbs with scaled scores) plus a full rebuild from stored data for export.
 - **SCORM 1.2** (`lib/scorm.ts`): `jszip` package with `imsmanifest.xml`, one SCO page per lesson rendered via `remark` (same GFM + sanitize rules), bundled uploaded media, and a tiny SCORM API wrapper that sets `cmi.core.lesson_status`.
 
+### Commerce (v1.0)
+
+- `Course.priceCents/currency`; `Purchase` (PENDING → PAID → REFUNDED, provider session/payment ids, coupon); `Coupon` (percent off, per-course, max uses, expiry).
+- **PaymentProvider** boundary (`lib/payments.ts`): `StripeProvider` (Checkout Sessions, refunds, webhook parsing) when `STRIPE_SECRET_KEY` is set, else `MockProvider` which redirects to `/checkout/mock/[purchaseId]`. `finalizePurchase` is idempotent and is reached from three places: the mock page, the Stripe webhook, and the landing page's return-from-checkout verification.
+- `startCheckout` validates the coupon server-side and computes the discounted amount; a 100 % coupon or a free course enrolls immediately. `enroll` (the free path) refuses paid courses without a PAID purchase.
+- Refunds (instructor action or Stripe `charge.refunded`) mark the purchase and delete the enrollment.
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).

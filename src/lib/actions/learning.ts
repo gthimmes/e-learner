@@ -11,11 +11,15 @@ import { formStr } from "@/lib/validation";
 export async function enroll(formData: FormData) {
   const courseId = formStr(formData, "courseId");
   const user = await getCurrentUser();
-  const course = await db.course.findUnique({ where: { id: courseId }, select: { ...accessSelect, status: true } });
+  const course = await db.course.findUnique({ where: { id: courseId }, select: { ...accessSelect, status: true, priceCents: true } });
   if (!course) throw new Error("Course not found.");
   if (!user) redirect(`/login?next=${encodeURIComponent(`/courses/${course.slug}`)}`);
   if (course.status !== "PUBLISHED") throw new Error("This course is not open for enrollment.");
   if (!canViewCourse(user, course)) throw new Error("This course is private to another organization.");
+  if (course.priceCents > 0) {
+    const paid = await db.purchase.findFirst({ where: { userId: user.id, courseId, status: "PAID" }, select: { id: true } });
+    if (!paid) throw new Error("This course requires purchase."); // v1.0: checkout handles paid enrollment
+  }
 
   const existing = await db.enrollment.findUnique({ where: { userId_courseId: { userId: user.id, courseId } }, select: { id: true } });
   if (!existing) {

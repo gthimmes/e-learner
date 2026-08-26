@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { actionAuthor } from "@/lib/auth";
 import { assertCourseAccess, assertLessonAccess, assertModuleAccess, isSlugTaken } from "@/lib/courses";
-import { courseSchema, firstIssue, formBool, formStr, lessonSchema, moduleSchema } from "@/lib/validation";
+import { courseSchema, firstIssue, formBool, formStr, lessonSchema, moduleSchema, parsePriceCents } from "@/lib/validation";
 import { slugify } from "@/lib/utils";
 import { createVersion } from "@/lib/versions";
 import type { ActionState } from "./auth";
@@ -32,6 +32,8 @@ export async function createCourse(_prev: ActionState, formData: FormData): Prom
     description: formStr(formData, "description"),
     coverUrl: formStr(formData, "coverUrl"),
     sequential: formBool(formData, "sequential"),
+    priceCents: parsePriceCents(formStr(formData, "price")),
+    currency: formStr(formData, "currency") || "usd",
   });
   if (!parsed.success) return { error: firstIssue(parsed.error) };
   if (await isSlugTaken(parsed.data.slug)) return { error: "That slug is already in use." };
@@ -60,6 +62,8 @@ export async function updateCourse(_prev: ActionState, formData: FormData): Prom
     description: formStr(formData, "description"),
     coverUrl: formStr(formData, "coverUrl"),
     sequential: formBool(formData, "sequential"),
+    priceCents: parsePriceCents(formStr(formData, "price")),
+    currency: formStr(formData, "currency") || "usd",
   });
   if (!parsed.success) return { error: firstIssue(parsed.error) };
   if (await isSlugTaken(parsed.data.slug, courseId)) return { error: "That slug is already in use." };

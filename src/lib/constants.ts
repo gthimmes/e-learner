@@ -35,7 +35,9 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   SHORT: "Short answer",
 };
 
-export const WEBHOOK_EVENTS = ["enrollment.created", "lesson.completed", "course.completed", "quiz.attempted"] as const;
+export const CURRENCIES = ["usd", "eur", "gbp", "cad", "aud"] as const;
+
+export const WEBHOOK_EVENTS =["enrollment.created", "lesson.completed", "course.completed", "quiz.attempted"] as const;
 
 export const SESSION_COOKIE = "el_session";
 export const SESSION_DAYS = 30;

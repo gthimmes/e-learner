@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { createCourse, updateCourse } from "@/lib/actions/courses";
 import type { ActionState } from "@/lib/actions/auth";
 import { slugify } from "@/lib/utils";
+import { CURRENCIES } from "@/lib/constants";
 import { Alert, Field, Input, Label, Textarea } from "./ui";
 import { SubmitButton } from "./SubmitButton";
 import { MediaUpload } from "./MediaUpload";
@@ -16,6 +17,8 @@ type CourseValues = {
   description?: string;
   coverUrl?: string | null;
   sequential?: boolean;
+  priceCents?: number;
+  currency?: string;
 };
 
 export function CourseForm({ mode, course }: { mode: "create" | "edit"; course?: CourseValues }) {
@@ -89,6 +92,30 @@ export function CourseForm({ mode, course }: { mode: "create" | "edit"; course?:
           <img src={coverUrl} alt="" className="mt-2 aspect-[21/9] w-full max-w-md rounded-lg object-cover" />
         ) : null}
       </Field>
+
+      <div className="grid grid-cols-[1fr_120px] gap-2">
+        <Field>
+          <Label htmlFor="price" hint="0 = free">
+            Price
+          </Label>
+          <Input id="price" name="price" type="number" min={0} step="0.01" defaultValue={((course?.priceCents ?? 0) / 100).toFixed(2)} />
+        </Field>
+        <Field>
+          <Label htmlFor="currency">Currency</Label>
+          <select
+            id="currency"
+            name="currency"
+            defaultValue={course?.currency ?? "usd"}
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {c.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
 
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" name="sequential" defaultChecked={course?.sequential ?? false} className="mt-0.5" />

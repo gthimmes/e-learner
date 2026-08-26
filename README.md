@@ -38,7 +38,13 @@ Or register fresh — the **first account created becomes the admin**.
 | Admin | User list with role, organization and org-admin management |
 | Interop | **Course versions**: snapshot on every publish, manual snapshots, restore (keeps learner progress on surviving lessons); **REST API** with per-user API keys and OpenAPI description (`/api/v1/openapi.json`); **webhooks** (HMAC-signed, delivery log, test ping); **xAPI** statement export + optional live forwarding to an LRS; **SCORM 1.2** package download per course |
 
-Roadmap status: **Phases 1–2 shipped; Phase 3 in progress** (v0.7 cohorts &amp; community ✅, v0.8 organizations &amp; SSO ✅, v0.9 interop ✅; v1.0 commerce next) — see [ROADMAP.md](docs/ROADMAP.md). CI runs lint, typecheck, unit, build and e2e on every push.
+| Commerce | Paid courses (price + currency per course) with **Stripe Checkout** (or an in-app mock provider when Stripe isn't configured); coupons (% off, max uses, expiry, 100 % = free enrollment); refunds that revoke access; per-course sales &amp; revenue page; Stripe webhook for async confirmation and external refunds |
+
+Roadmap status: **all three phases shipped** (v0.1–v1.0) — see [ROADMAP.md](docs/ROADMAP.md) for what's next. CI runs lint, typecheck, unit, build and e2e on every push.
+
+### Payments setup
+
+Set a price under the course's Details. Without Stripe keys, checkout uses an in-app mock page (clearly labelled) so the whole flow works locally and in CI. For real payments set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, and point a Stripe webhook at `${APP_URL}/api/stripe/webhook` for `checkout.session.completed` and `charge.refunded`. Returning from Checkout also verifies the session directly, so enrollment works even before the webhook lands.
 
 ### REST API, webhooks, xAPI, SCORM
 

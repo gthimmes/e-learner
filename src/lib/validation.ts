@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LESSON_TYPES, QUESTION_TYPES } from "./constants";
+import { CURRENCIES, LESSON_TYPES, QUESTION_TYPES } from "./constants";
 
 export const registerSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
@@ -24,7 +24,15 @@ export const courseSchema = z.object({
   description: z.string().max(50_000).default(""),
   coverUrl: z.string().trim().max(500).default(""),
   sequential: z.boolean().default(false),
+  priceCents: z.coerce.number().int().min(0).max(1_000_000_00).default(0),
+  currency: z.enum(CURRENCIES).default("usd"),
 });
+
+/** "12.50" → 1250 cents; blank/invalid → 0. */
+export function parsePriceCents(s: string) {
+  const n = Number(s.replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : 0;
+}
 
 export const moduleSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(120),
