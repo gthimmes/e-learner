@@ -65,6 +65,15 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 | `LessonProgress` | enrollmentId + lessonId (unique), completedAt | Source of truth for progress % |
 | `Question` / `Choice` | lessonId, type, prompt, position; choice text + isCorrect | Phase 2 |
 | `QuizAttempt` / `Answer` | enrollmentId, lessonId, score, passed; per-question answer | Phase 2 |
+| `Cohort` | courseId, name, startsAt, endsAt, dueAt; `Enrollment.cohortId` | Phase 3 — due dates drive overdue flags and reminders |
+| `Comment` | lessonId, userId, parentId (one level), body, deletedAt | Phase 3 — soft-deleted; instructor/admin moderate |
+| `PasswordReset` | userId, tokenHash (sha256), expiresAt, usedAt | Phase 3 — single-use, 60-minute TTL |
+
+### Phase 3 adapters and safeguards
+
+- **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).
+- **Rate limiting** (`lib/ratelimit.ts`): fixed-window, in-memory, keyed by IP (+ email) for sign-in and reset requests. Per-process — move the store to Redis when running more than one instance.
+- **CI** (`.github/workflows/ci.yml`): migrate → seed → lint → typecheck → unit → build → Playwright e2e against `next start`.
 
 Progress % = completed lessons / total lessons in the course, computed on read (cheap at
 Phase 1 scale; denormalize into `Enrollment.progressPct` if NFR-7 demands it).

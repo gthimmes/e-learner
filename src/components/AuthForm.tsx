@@ -41,6 +41,10 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: st
       <p className="text-center text-sm text-zinc-500">
         {mode === "login" ? (
           <>
+            <Link href="/forgot" className="text-indigo-600 hover:underline">
+              Forgot password?
+            </Link>
+            <span className="mx-2">·</span>
             No account?{" "}
             <Link href={next ? `/register?next=${encodeURIComponent(next)}` : "/register"} className="text-indigo-600 hover:underline">
               Create one

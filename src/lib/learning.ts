@@ -6,8 +6,16 @@ import { pct } from "./utils";
 export async function getEnrollment(userId: string, courseId: string) {
   return db.enrollment.findUnique({
     where: { userId_courseId: { userId, courseId } },
-    include: { progress: { select: { lessonId: true, completedAt: true } } },
+    include: {
+      progress: { select: { lessonId: true, completedAt: true } },
+      cohort: { select: { id: true, name: true, dueAt: true, endsAt: true } },
+    },
   });
+}
+
+/** A cohort due date has passed and the learner has not completed the course. */
+export function isOverdue(dueAt: Date | null | undefined, completedAt: Date | null | undefined) {
+  return !!dueAt && !completedAt && dueAt.getTime() < Date.now();
 }
 
 export type LearnerContext = {
@@ -62,12 +70,13 @@ export async function getMyEnrollments(userId: string) {
         },
       },
       progress: { select: { lessonId: true } },
+      cohort: { select: { id: true, name: true, dueAt: true, endsAt: true } },
     },
   });
   return enrollments.map((e) => {
     const stats = courseStats(e.course);
     const done = e.progress.length;
-    return { ...e, stats, done, progressPct: pct(done, stats.lessonCount) };
+    return { ...e, stats, done, progressPct: pct(done, stats.lessonCount), overdue: isOverdue(e.cohort?.dueAt, e.completedAt) };
   });
 }
 
@@ -77,7 +86,11 @@ export async function getCourseLearners(courseId: string) {
     db.enrollment.findMany({
       where: { courseId },
       orderBy: { enrolledAt: "desc" },
-      include: { user: { select: { id: true, name: true, email: true } }, _count: { select: { progress: true } } },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        cohort: { select: { id: true, name: true, dueAt: true } },
+        _count: { select: { progress: true } },
+      },
     }),
     db.lesson.count({ where: { module: { courseId } } }),
   ]);

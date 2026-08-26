@@ -42,10 +42,14 @@ await check("author redirects anon", "/author", { expect: 307 });
 await check("admin denied for learner", "/admin/users", { cookie: learner, expect: 307 });
 await check("author denied for learner", "/author", { cookie: learner, expect: 307 });
 
+await check("forgot page", "/forgot", { contains: ["Send reset link"] });
+await check("reset page (bad token renders form)", "/reset/not-a-token", { contains: ["Set new password"] });
+await check("login has forgot link", "/login", { contains: ["Forgot password?"] });
+
 // Learner
 await check("my learning", "/learn", { cookie: learner, contains: ["My Learning", "Introduction to Online Teaching", "1/7 lessons"] });
 await check("resume redirect", `/learn/${course.slug}`, { cookie: learner, expect: 307 });
-await check("lesson player (text)", `/learn/${course.slug}/${lesson0.id}`, { cookie: learner, contains: ["Welcome!", "Completed", "Mark incomplete", "Next:"] });
+await check("lesson player (text)", `/learn/${course.slug}/${lesson0.id}`, { cookie: learner, contains: ["Welcome!", "Completed", "Mark incomplete", "Next:", "Discussion", "Post comment"] });
 await check("lesson player (video embed)", `/learn/${course.slug}/${videoLesson.id}`, { cookie: learner, contains: ["youtube-nocookie.com/embed/dQw4w9WgXcQ", "Mark complete"] });
 await check("course landing (enrolled)", `/courses/${course.slug}`, { cookie: learner, contains: ["Your progress", "14%"] });
 await check("done page", `/learn/${course.slug}/done`, { cookie: learner, contains: ["Almost there"] });
@@ -54,7 +58,7 @@ await check("done page", `/learn/${course.slug}/done`, { cookie: learner, contai
 await check("author dashboard", "/author", { cookie: instructor, contains: ["Your courses", "Introduction to Online Teaching", "Published"] });
 await check("course editor", `/author/${course.id}`, { cookie: instructor, contains: ["Outline", "Add lesson", "Add module", "Unpublish", "Danger zone"] });
 await check("lesson editor", `/author/${course.id}/lessons/${videoLesson.id}`, { cookie: instructor, contains: ["Save lesson", "youtube.com/watch", "Move to module"] });
-await check("learners", `/author/${course.id}/learners`, { cookie: instructor, contains: ["Lee Learner", "1/7"] });
+await check("learners", `/author/${course.id}/learners`, { cookie: instructor, contains: ["Lee Learner", "1/7", "Add cohort", "Enroll learners by email"] });
 await check("new course", "/author/new", { cookie: instructor, contains: ["Create a course"] });
 await check("author preview", `/learn/${course.slug}/${lesson0.id}`, { cookie: instructor, contains: ["Author preview"] });
 

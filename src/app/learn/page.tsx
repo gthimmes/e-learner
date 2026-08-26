@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { getMyEnrollments } from "@/lib/learning";
 import { CourseCard } from "@/components/CourseCard";
 import { Badge, EmptyState, LinkButton, PageHeader, ProgressBar } from "@/components/ui";
+import { formatDate } from "@/lib/utils";
 
 export const metadata = { title: "My Learning" };
 
@@ -28,6 +29,11 @@ function EnrollmentGrid({ items }: { items: Enrollments }) {
                 </span>
                 {e.completedAt ? <Badge tone="success">Completed</Badge> : <span className="font-medium">{e.progressPct}%</span>}
               </div>
+              {e.cohort?.dueAt && !e.completedAt ? (
+                <div className="text-xs">
+                  {e.overdue ? <Badge tone="warning">Overdue · was due {formatDate(e.cohort.dueAt)}</Badge> : <span className="text-zinc-500">Due {formatDate(e.cohort.dueAt)} · {e.cohort.name}</span>}
+                </div>
+              ) : null}
               <ProgressBar value={e.progressPct} />
             </div>
           }

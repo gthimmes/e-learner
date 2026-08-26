@@ -32,9 +32,11 @@ Or register fresh — the **first account created becomes the admin**.
 | Quizzes | Question types: multiple choice, multiple select, true/false, short answer; points, explanations; pass mark, attempt limits, shuffle, answer reveal; auto-grading; attempt history; passing completes the lesson |
 | Learning | Public catalog; self-enrollment; course player with outline and completion state; mark complete & continue; next/previous; media playback position memory; My Learning with resume; course completion; printable certificate |
 | Instructor | Dashboard with enrollment and completion counts; per-course learner progress; enroll by email; CSV export; per-quiz analytics (pass rate, average, hardest questions) |
+| Cohorts &amp; community | Cohorts with start / due / end dates; overdue flags for learners and instructors; due-date reminder script (`npx tsx scripts/send-reminders.ts`); per-lesson discussion with replies and moderation |
+| Account | Password reset by email (console mailer in dev, SMTP via `SMTP_URL` in prod); rate-limited sign-in and reset requests |
 | Admin | User list and role management |
 
-Roadmap status: **Phase 1 (Learn) and Phase 2 (Assess) shipped**; Phase 3 (Scale) is next — see [ROADMAP.md](docs/ROADMAP.md).
+Roadmap status: **Phases 1–2 shipped; Phase 3 in progress** (v0.7 cohorts &amp; community done; organizations, interop and commerce next) — see [ROADMAP.md](docs/ROADMAP.md). CI runs lint, typecheck, unit, build and e2e on every push.
 
 ## Testing
 
@@ -72,6 +74,9 @@ Copy `.env.example` to `.env`:
 | `SESSION_SECRET` | dev value | **Change in production** — the app refuses to start with the dev value |
 | `UPLOAD_DIR` | `./uploads` | Local media storage (git-ignored) |
 | `MAX_UPLOAD_MB` | `200` | Upload size limit |
+| `APP_URL` | `http://localhost:3000` | Base URL used in emails (reset links, reminders) |
+| `SMTP_URL` | unset | `smtp://user:pass@host:587` — when unset, mail is printed to the server console |
+| `MAIL_FROM` | `e-learner <no-reply@localhost>` | Sender address |
 
 ## Project layout
 

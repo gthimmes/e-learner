@@ -34,8 +34,16 @@ export async function enrollByEmail(_prev: RosterState, formData: FormData): Pro
   });
   const already = new Set(existing.map((e) => e.userId));
   const toAdd = users.filter((u) => !already.has(u.id));
+  const cohortId = formStr(formData, "cohortId") || null;
+  if (cohortId) {
+    const c = await db.cohort.findUnique({ where: { id: cohortId }, select: { courseId: true } });
+    if (!c || c.courseId !== courseId) return { error: "Cohort not found for this course." };
+  }
   if (toAdd.length) {
-    await db.enrollment.createMany({ data: toAdd.map((u) => ({ userId: u.id, courseId })) });
+    await db.enrollment.createMany({ data: toAdd.map((u) => ({ userId: u.id, courseId, cohortId })) });
+  }
+  if (cohortId && already.size) {
+    await db.enrollment.updateMany({ where: { courseId, userId: { in: [...already] } }, data: { cohortId } });
   }
   revalidatePath(`/author/${courseId}/learners`);
   revalidatePath("/learn");

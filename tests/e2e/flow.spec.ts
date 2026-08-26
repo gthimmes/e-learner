@@ -98,6 +98,17 @@ test("author → publish → enroll → complete → quiz → certificate", asyn
   // Reading lesson → mark complete & continue → lands on quiz.
   await expect(page.getByRole("heading", { name: "Reading one" })).toBeVisible();
   await expect(page.getByText("This is markdown.")).toBeVisible();
+
+  // Discussion: post, reply, delete (LEARN-13).
+  await page.getByLabel("Add a comment").fill("Is this on the quiz?");
+  await page.getByRole("button", { name: "Post comment" }).click();
+  await expect(page.getByText("Is this on the quiz?")).toBeVisible();
+  await page.getByText("Reply", { exact: true }).click();
+  await page.getByPlaceholder("Write a reply…").fill("Never mind, found it.");
+  await page.getByRole("button", { name: "Post reply" }).click();
+  await expect(page.getByText("Never mind, found it.")).toBeVisible();
+  await page.getByRole("button", { name: "Delete" }).last().click();
+  await expect(page.getByText("Comment removed.")).toBeVisible();
   await page.getByRole("button", { name: /Mark complete & continue/ }).click();
   await expect(page.getByRole("heading", { name: "Final quiz" })).toBeVisible();
 
@@ -137,4 +148,14 @@ test("author → publish → enroll → complete → quiz → certificate", asyn
   await page.goto(courseUrl.replace(/\/author\/([a-z0-9]+)$/, "/author/$1/learners"));
   await expect(page.getByText("E2E Learner")).toBeVisible();
   await expect(page.getByText(/^Completed/).first()).toBeVisible();
+
+  // Cohorts: create one with a past due date and assign the learner (LEARN-12).
+  await page.getByLabel("New cohort name").fill("Cohort A");
+  await page.locator("#new-due").fill("2020-01-01");
+  await page.getByRole("button", { name: "Add cohort" }).click();
+  await expect(page.getByLabel("Cohort name").first()).toHaveValue("Cohort A");
+  await page.getByLabel("Cohort for E2E Learner").selectOption({ label: "Cohort A" });
+  await page.getByRole("button", { name: "Set" }).click();
+  await expect(page.getByRole("combobox", { name: "Cohort for E2E Learner" })).toHaveValue(/./);
+  // Learner completed the course, so no overdue badge; a fresh learner would be flagged.
 });

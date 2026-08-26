@@ -19,8 +19,10 @@ model User {
   role         String   @default("LEARNER") // LEARNER | INSTRUCTOR | ADMIN
   createdAt    DateTime @default(now())
 
-  courses     Course[]
-  enrollments Enrollment[]
+  courses        Course[]
+  enrollments    Enrollment[]
+  comments       Comment[]
+  passwordResets PasswordReset[]
 }
 
 model Course {
@@ -40,6 +42,7 @@ model Course {
   instructor  User         @relation(fields: [instructorId], references: [id])
   modules     Module[]
   enrollments Enrollment[]
+  cohorts     Cohort[]
 
   @@index([status])
   @@index([instructorId])
@@ -82,6 +85,7 @@ model Lesson {
   progress  LessonProgress[]
   questions Question[]
   attempts  QuizAttempt[]
+  comments  Comment[]
 
   @@index([moduleId, position])
 }
@@ -93,9 +97,11 @@ model Enrollment {
   enrolledAt   DateTime  @default(now())
   completedAt  DateTime?
   lastLessonId String?
+  cohortId     String?
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  cohort   Cohort?          @relation(fields: [cohortId], references: [id], onDelete: SetNull)
   progress LessonProgress[]
   attempts QuizAttempt[]
 
@@ -171,4 +177,51 @@ model Answer {
 
   attempt  QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Phase 3: cohorts, discussion, password reset ----------
+
+model Cohort {
+  id        String    @id @default(cuid())
+  courseId  String
+  name      String
+  startsAt  DateTime  @default(now())
+  endsAt    DateTime?
+  dueAt     DateTime?
+  createdAt DateTime  @default(now())
+
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+
+  @@index([courseId])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  lessonId  String
+  userId    String
+  parentId  String?
+  body      String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  lesson  Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("Replies")
+
+  @@index([lessonId, createdAt])
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

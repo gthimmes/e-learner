@@ -2,16 +2,17 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { canEditCourse } from "@/lib/courses";
-import { getLearnerContext, isLessonUnlocked } from "@/lib/learning";
+import { getLearnerContext, isLessonUnlocked, isOverdue } from "@/lib/learning";
 import { completeLesson, uncompleteLesson } from "@/lib/actions/learning";
 import { Markdown } from "@/components/Markdown";
 import { MediaPlayer } from "@/components/MediaPlayer";
 import { QuizPlayer } from "@/components/QuizPlayer";
+import { Discussion } from "@/components/Discussion";
 import { TrackLesson } from "@/components/TrackLesson";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Badge, LinkButton, ProgressBar } from "@/components/ui";
 import { LESSON_TYPE_ICONS, LESSON_TYPE_LABELS, type LessonType } from "@/lib/constants";
-import { cn, formatDuration } from "@/lib/utils";
+import { cn, formatDate, formatDuration } from "@/lib/utils";
 
 export default async function LessonPlayerPage({
   params,
@@ -59,6 +60,12 @@ export default async function LessonPlayerPage({
               <span>{ctx.progressPct}%</span>
             </div>
             <ProgressBar value={ctx.progressPct} className="mt-1.5" />
+            {ctx.enrollment?.cohort?.dueAt && !courseComplete ? (
+              <div className={cn("mt-2 text-xs", isOverdue(ctx.enrollment.cohort.dueAt, ctx.enrollment.completedAt) ? "font-medium text-amber-700 dark:text-amber-400" : "text-zinc-500")}>
+                {isOverdue(ctx.enrollment.cohort.dueAt, ctx.enrollment.completedAt) ? "Overdue · was due " : "Due "}
+                {formatDate(ctx.enrollment.cohort.dueAt)} · {ctx.enrollment.cohort.name}
+              </div>
+            ) : null}
             {courseComplete ? (
               <Link href={`/learn/${slug}/certificate`} className="mt-2 block text-xs text-indigo-600 hover:underline">
                 🎓 View certificate
@@ -184,6 +191,9 @@ export default async function LessonPlayerPage({
             ) : null}
           </div>
         </div>
+
+        {/* Discussion (LEARN-13) */}
+        {unlocked ? <Discussion lessonId={lesson.id} user={user} canPost={!!ctx.enrollment || isAuthor} isModerator={isAuthor} /> : null}
       </article>
     </div>
   );
