@@ -1,0 +1,174 @@
+// e-learner data model. See docs/ARCHITECTURE.md for the entity overview.
+// Enum-like fields are strings so the same schema works on SQLite (dev) and Postgres (prod);
+// the allowed values live in src/lib/constants.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("LEARNER") // LEARNER | INSTRUCTOR | ADMIN
+  createdAt    DateTime @default(now())
+
+  courses     Course[]
+  enrollments Enrollment[]
+}
+
+model Course {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  title        String
+  summary      String    @default("")
+  description  String    @default("") // markdown
+  coverUrl     String?
+  status       String    @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  sequential   Boolean   @default(false) // Phase 2: lessons must be completed in order
+  instructorId String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  publishedAt  DateTime?
+
+  instructor  User         @relation(fields: [instructorId], references: [id])
+  modules     Module[]
+  enrollments Enrollment[]
+
+  @@index([status])
+  @@index([instructorId])
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  courseId  String
+  title     String
+  summary   String   @default("")
+  position  Int
+  createdAt DateTime @default(now())
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId, position])
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  moduleId    String
+  title       String
+  type        String   @default("TEXT") // TEXT | VIDEO | AUDIO | IMAGE | FILE | QUIZ
+  body        String   @default("") // markdown
+  mediaUrl    String? // uploaded media key URL (/api/media/...) or external URL (YouTube/Vimeo)
+  mediaCaption String  @default("")
+  durationMin Int      @default(5)
+  position    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Quiz settings (Phase 2) — only meaningful when type = QUIZ
+  passingScore     Int     @default(70) // percent
+  maxAttempts      Int     @default(0) // 0 = unlimited
+  shuffleQuestions Boolean @default(false)
+  showAnswers      Boolean @default(true)
+
+  module    Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress  LessonProgress[]
+  questions Question[]
+  attempts  QuizAttempt[]
+
+  @@index([moduleId, position])
+}
+
+model Enrollment {
+  id           String    @id @default(cuid())
+  userId       String
+  courseId     String
+  enrolledAt   DateTime  @default(now())
+  completedAt  DateTime?
+  lastLessonId String?
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress LessonProgress[]
+  attempts QuizAttempt[]
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model LessonProgress {
+  id           String   @id @default(cuid())
+  enrollmentId String
+  lessonId     String
+  completedAt  DateTime @default(now())
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId])
+}
+
+// ---------- Phase 2: assessment ----------
+
+model Question {
+  id          String   @id @default(cuid())
+  lessonId    String
+  type        String   @default("SINGLE") // SINGLE | MULTI | TRUE_FALSE | SHORT
+  prompt      String // markdown
+  explanation String   @default("")
+  answerText  String   @default("") // for SHORT: accepted answer(s), one per line
+  position    Int
+  points      Int      @default(1)
+
+  lesson  Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  choices Choice[]
+  answers Answer[]
+
+  @@index([lessonId, position])
+}
+
+model Choice {
+  id         String  @id @default(cuid())
+  questionId String
+  text       String
+  isCorrect  Boolean @default(false)
+  position   Int
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, position])
+}
+
+model QuizAttempt {
+  id           String   @id @default(cuid())
+  enrollmentId String
+  lessonId     String
+  score        Int // percent 0..100
+  passed       Boolean
+  startedAt    DateTime @default(now())
+  submittedAt  DateTime @default(now())
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  answers    Answer[]
+
+  @@index([enrollmentId, lessonId])
+}
+
+model Answer {
+  id         String  @id @default(cuid())
+  attemptId  String
+  questionId String
+  response   String // JSON: choice id(s) or text
+  correct    Boolean
+
+  attempt  QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}

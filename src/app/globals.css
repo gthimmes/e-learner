@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Minimal typography for rendered Markdown (no @tailwindcss/typography dependency). */
+.prose {
+  line-height: 1.7;
+  max-width: 72ch;
+}
+.prose > * + * { margin-top: 1em; }
+.prose h1 { font-size: 1.875rem; font-weight: 600; line-height: 1.25; margin-top: 1.5em; }
+.prose h2 { font-size: 1.5rem; font-weight: 600; line-height: 1.3; margin-top: 1.5em; }
+.prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25em; }
+.prose h4 { font-size: 1.05rem; font-weight: 600; }
+.prose p  { margin-top: 1em; }
+.prose a  { color: #4f46e5; text-decoration: underline; text-underline-offset: 2px; }
+.prose ul { list-style: disc; padding-left: 1.5em; }
+.prose ol { list-style: decimal; padding-left: 1.5em; }
+.prose li + li { margin-top: 0.25em; }
+.prose blockquote { border-left: 3px solid #d4d4d8; padding-left: 1em; color: #52525b; font-style: italic; }
+.prose code { font-family: var(--font-mono); font-size: 0.875em; background: #f4f4f5; padding: 0.15em 0.35em; border-radius: 0.3em; }
+.prose pre { background: #18181b; color: #f4f4f5; padding: 1em; border-radius: 0.6em; overflow-x: auto; font-size: 0.875em; }
+.prose pre code { background: transparent; padding: 0; color: inherit; }
+.prose img { max-width: 100%; border-radius: 0.6em; }
+.prose table { width: 100%; border-collapse: collapse; font-size: 0.925em; }
+.prose th, .prose td { border: 1px solid #e4e4e7; padding: 0.5em 0.75em; text-align: left; }
+.prose th { background: #fafafa; font-weight: 600; }
+.prose hr { border-color: #e4e4e7; }
+.prose input[type="checkbox"] { margin-right: 0.5em; }
+
+@media (prefers-color-scheme: dark) {
+  .prose a { color: #818cf8; }
+  .prose blockquote { border-color: #3f3f46; color: #a1a1aa; }
+  .prose code { background: #27272a; }
+  .prose th, .prose td { border-color: #3f3f46; }
+  .prose th { background: #18181b; }
+  .prose hr { border-color: #3f3f46; }
 }
