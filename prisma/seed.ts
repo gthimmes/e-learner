@@ -83,7 +83,7 @@ When you're done reading, press **Mark complete & continue**.`,
                   type: "VIDEO",
                   position: 1,
                   durationMin: 8,
-                  mediaUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                  mediaUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", // Big Buck Bunny (Blender Foundation, CC-BY)
                   mediaCaption: "Replace this with your own video — YouTube, Vimeo, or an uploaded MP4.",
                   body: `Video lessons can embed **YouTube** or **Vimeo** links, or play an MP4/WebM you upload directly.
 

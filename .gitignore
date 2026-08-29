@@ -47,3 +47,6 @@ next-env.d.ts
 !.env.example
 /test-results
 /playwright-report
+
+# demo recordings
+scripts/demo/output/

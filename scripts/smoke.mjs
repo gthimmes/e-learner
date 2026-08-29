@@ -55,7 +55,7 @@ await check("login has forgot link", "/login", { contains: ["Forgot password?"] 
 await check("my learning", "/learn", { cookie: learner, contains: ["My Learning", "Introduction to Online Teaching", "1/7 lessons"] });
 await check("resume redirect", `/learn/${course.slug}`, { cookie: learner, expect: 307 });
 await check("lesson player (text)", `/learn/${course.slug}/${lesson0.id}`, { cookie: learner, contains: ["Welcome!", "Completed", "Mark incomplete", "Next:", "Discussion", "Post comment"] });
-await check("lesson player (video embed)", `/learn/${course.slug}/${videoLesson.id}`, { cookie: learner, contains: ["youtube-nocookie.com/embed/dQw4w9WgXcQ", "Mark complete"] });
+await check("lesson player (video embed)", `/learn/${course.slug}/${videoLesson.id}`, { cookie: learner, contains: ["youtube-nocookie.com/embed/aqz-KE-bpKQ", "Mark complete"] });
 await check("course landing (enrolled)", `/courses/${course.slug}`, { cookie: learner, contains: ["Your progress", "14%"] });
 await check("done page", `/learn/${course.slug}/done`, { cookie: learner, contains: ["Almost there"] });
 

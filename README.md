@@ -68,6 +68,8 @@ npm run test:e2e       # Playwright end-to-end: author → publish → enroll �
 
 `npx playwright install chromium` once before the e2e suite.
 
+A scripted product walkthrough recording lives in `scripts/demo/` (see its README); `node scripts/cleanup-test-data.mjs` removes rows left behind by e2e runs or demo takes.
+
 ## Stack
 
 Next.js 16 (App Router, server actions) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 6 ·
