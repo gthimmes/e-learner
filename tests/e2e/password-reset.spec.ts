@@ -28,6 +28,7 @@ test("forgot / reset password", async ({ page }) => {
 
   // Token is single-use.
   await page.getByRole("button", { name: "Sign out" }).click();
+  await page.waitForURL("/"); // the sign-out action must finish before the next request or /login redirects to /learn
   await page.goto(`/reset/${token}`);
   await page.getByLabel("New password").fill("another-pass-123");
   await page.getByRole("button", { name: "Set new password" }).click();

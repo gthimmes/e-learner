@@ -7,7 +7,7 @@ const courses = await db.course.deleteMany({
 });
 const paths = await db.learningPath.deleteMany({ where: { title: { startsWith: "Zebra Path" } } });
 const users = await db.user.deleteMany({
-  where: { OR: [{ email: { startsWith: "e2e-" } }, { email: { startsWith: "disc-" } }, { email: { startsWith: "buyer-" } }, { email: { startsWith: "assess-" } }, { email: { startsWith: "engage-" } }, { email: { startsWith: "dana.demo" } }, { email: { startsWith: "sso-" } }, { email: { startsWith: "reset-" } }, { email: { startsWith: "newbie" } }, { email: { startsWith: "coauthor-" } }] },
+  where: { OR: [{ email: { startsWith: "e2e-" } }, { email: { startsWith: "disc-" } }, { email: { startsWith: "buyer-" } }, { email: { startsWith: "assess-" } }, { email: { startsWith: "engage-" } }, { email: { startsWith: "ai-" } }, { email: { startsWith: "dana.demo" } }, { email: { startsWith: "sso-" } }, { email: { startsWith: "reset-" } }, { email: { startsWith: "newbie" } }, { email: { startsWith: "coauthor-" } }] },
 });
 const orgs = await db.organization.deleteMany({ where: { slug: { startsWith: "e2e-" } } });
 console.log({ courses: courses.count, paths: paths.count, users: users.count, orgs: orgs.count });

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { storage } from "@/lib/storage";
 import { rateLimitBackend } from "@/lib/ratelimit";
 import { payments } from "@/lib/payments";
+import { aiEnabled, aiProvider } from "@/lib/ai";
 import pkg from "../../../../package.json";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export async function GET() {
       rateLimit: { backend: rateLimitBackend },
       payments: { provider: payments.name },
       mail: { transport: process.env.SMTP_URL ? "smtp" : "console" },
+      ai: { provider: aiProvider.name, enabled: aiEnabled },
       webhooks: { queued: pending, dead },
     },
   };

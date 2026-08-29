@@ -115,6 +115,11 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - **Observability**: `lib/log.ts` (JSON lines in production), `src/instrumentation.ts#onRequestError` → `reportError` (optional `ERROR_REPORT_URL`), `/api/health` (db, storage, rate-limit backend, payments provider, mail transport, webhook queue depth). `AuditLog` records privileged actions (`lib/audit.ts`), shown at `/admin/audit`; `/admin/analytics` aggregates usage and outcomes.
 - **Packaging**: multi-stage `Dockerfile` (migrates on start, healthcheck) and `docker-compose.yml` with Redis, MinIO and a retry scheduler.
 
+### Copilot (v2.0)
+
+- `lib/ai.ts` — `AiProvider` boundary: `AnthropicProvider` (Messages API over `fetch`, no SDK) or `MockProvider` (deterministic, `lib/ai-mock.ts`). Task functions `draftOutline`, `draftLessonBody`, `generateQuestions`, `summarizeLesson`, `tutorAnswer` build prompts and validate replies through `lib/ai-types.ts` (`parseJsonLoose`, `validateOutline`, `validateQuestions`) so a malformed model reply can never write bad rows.
+- Actions (`actions/ai.ts`) are rate-limited per user (40/h via the rate-limit store), audited (`ai.course`, `ai.questions`), and only ever create **drafts**: `generateCourse` writes a DRAFT course with modules/lessons and quiz questions generated from each module's text; `generateQuizQuestions` appends to a quiz lesson; `draftLesson` returns Markdown for the editor to insert; `askTutor` is stateless and grounded in one lesson (enrolled learners and the author only).
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).

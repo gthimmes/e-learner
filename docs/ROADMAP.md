@@ -11,7 +11,9 @@ grading queue, timed quizzes with auto-submit, question banks) · v1.3 ✅ (prof
 points and badges; cohort leaderboard; notifications; course announcements with email) ·
 v1.4 ✅ (webhook outbox with retries + dead-letter, S3 storage adapter, Redis rate limits,
 /api/health, structured logs + error reporting, admin analytics, audit log, Docker). **Phase 4
-complete.** Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
+complete.** Phase 5 🔨 — v2.0 ✅ (AI copilot: draft a course from a prompt, draft lesson
+bodies, generate quiz questions, grounded learner tutor; Anthropic provider + deterministic
+mock for dev/CI). Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
 
 ## North-star goals (Phases 4–5)
 

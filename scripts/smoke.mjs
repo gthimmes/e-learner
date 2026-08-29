@@ -207,11 +207,20 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
 
 // Operate (v1.4)
 {
-  await check("health", "/api/health", { contains: ['"ok":true', '"db":{"ok":true', '"storage":{"kind":"local"}', '"version":"1.4.0"'] });
+  await check("health", "/api/health", { contains: ['"ok":true', '"db":{"ok":true', '"storage":{"kind":"local"}', '"version":"2.0.0"', '"ai":{"provider":"mock","enabled":true}'] });
   await check("cron route needs secret", "/api/cron/webhooks", { method: "POST", expect: process.env.CRON_SECRET ? 401 : 404 });
   await check("admin analytics", "/admin/analytics", { cookie: admin, contains: ["Analytics", "Enrollments per day", "Top courses", "Webhook deliveries"] });
   await check("admin analytics denied for instructor", "/admin/analytics", { cookie: instructor, expect: 307 });
   await check("admin audit", "/admin/audit", { cookie: admin, contains: ["Audit log"] });
+}
+
+// Copilot (v2.0, mock provider)
+{
+  await check("new course has AI panel", "/author/new", { cookie: instructor, contains: ["Draft with AI", "What should the course teach?", "Or start by hand"] });
+  await check("lesson editor has draft button", `/author/${course.id}/lessons/${lesson0.id}`, { cookie: instructor, contains: ["Draft with AI"] });
+  const quizLesson = course.modules[2].lessons[1];
+  await check("quiz editor has generate form", `/author/${course.id}/lessons/${quizLesson.id}`, { cookie: instructor, contains: ["Generate questions from this course"] });
+  await check("learner lesson has tutor", `/learn/${course.slug}/${lesson0.id}`, { cookie: learner, contains: ["Ask the tutor"] });
 }
 
 // CSV export (ADMIN-5)

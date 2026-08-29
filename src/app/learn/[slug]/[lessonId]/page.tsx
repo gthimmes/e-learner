@@ -9,6 +9,8 @@ import { MediaPlayer } from "@/components/MediaPlayer";
 import { QuizPlayer } from "@/components/QuizPlayer";
 import { Discussion } from "@/components/Discussion";
 import { TrackLesson } from "@/components/TrackLesson";
+import { AiTutor } from "@/components/AiForms";
+import { aiEnabled } from "@/lib/ai";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Badge, LinkButton, ProgressBar } from "@/components/ui";
 import { LESSON_TYPE_ICONS, LESSON_TYPE_LABELS, type LessonType } from "@/lib/constants";
@@ -148,6 +150,7 @@ export default async function LessonPlayerPage({
               <div className="mt-6">
                 <Markdown>{lesson.body}</Markdown>
               </div>
+              {aiEnabled && !isQuiz && (ctx.enrollment || isAuthor) && lesson.body.trim().length > 40 ? <AiTutor lessonId={lesson.id} lessonTitle={lesson.title} /> : null}
               {isQuiz ? <QuizPlayer lesson={lesson} enrollmentId={ctx.enrollment?.id ?? null} attemptId={attempt} takeId={take} basePath={basePath} /> : null}
             </>
           )}

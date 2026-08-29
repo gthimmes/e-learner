@@ -16,9 +16,9 @@ export default async function CourseEditorPage({
   searchParams,
 }: {
   params: Promise<{ courseId: string }>;
-  searchParams: Promise<{ error?: string; restored?: string }>;
+  searchParams: Promise<{ error?: string; restored?: string; ai?: string }>;
 }) {
-  const [{ courseId }, { error, restored }] = await Promise.all([params, searchParams]);
+  const [{ courseId }, { error, restored, ai }] = await Promise.all([params, searchParams]);
   const user = await requireRole(`/author/${courseId}`, "INSTRUCTOR", "ADMIN");
   const course = await getCourseForAuthor(courseId, user);
   if (!course) notFound();
@@ -83,6 +83,11 @@ export default async function CourseEditorPage({
         }
       />
 
+      {ai ? (
+        <div className="mb-6">
+          <Alert tone="info">✨ Drafted by the copilot as a draft course. Read every lesson, fix what&apos;s wrong, adjust the quiz questions — then publish.</Alert>
+        </div>
+      ) : null}
       {error ? (
         <div className="mb-6">
           <Alert>{error}</Alert>

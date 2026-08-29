@@ -83,7 +83,17 @@ Priorities use MoSCoW: **M** must, **S** should, **C** could. "Phase" refers to
 | QUIZ-8 | Timed quizzes: explicit start, server-side deadline, countdown with auto-submit, expired attempts score 0. | S | 4 |
 | QUIZ-9 | Question banks: draw N random questions per attempt, fixed for that attempt. | C | 4 |
 
-## 6. Non-functional
+## 6. Copilot (Phase 5)
+
+| ID | Requirement | MoSCoW | Phase |
+| --- | --- | --- | --- |
+| AI-1 | Draft a complete course (outline, lessons, quiz questions) from a short prompt, as a draft the author edits. | S | 5 |
+| AI-2 | Draft a lesson body from its title and course context, inserted into the editor. | S | 5 |
+| AI-3 | Generate quiz questions from the course's own lesson text. | S | 5 |
+| AI-4 | Learner tutor grounded in the current lesson; refuses off-lesson questions and quiz answers. | C | 5 |
+| AI-5 | Works offline with a deterministic mock; per-user rate limits; every generation audited. | M | 5 |
+
+## 7. Non-functional
 
 | ID | Requirement | Pri |
 | --- | --- | --- |

@@ -7,6 +7,9 @@ import { QuestionEditor } from "@/components/QuestionEditor";
 import { QuizStats } from "@/components/QuizStats";
 import { Card, LinkButton, PageHeader, Select } from "@/components/ui";
 import { SubmitButton } from "@/components/SubmitButton";
+import { generateQuizQuestions } from "@/lib/actions/ai";
+import { aiEnabled } from "@/lib/ai";
+import { Input, Label } from "@/components/ui";
 
 export const metadata = { title: "Edit lesson" };
 
@@ -44,7 +47,21 @@ export default async function LessonEditorPage({ params }: { params: Promise<{ c
           </Card>
           {lesson.type === "QUIZ" ? (
             <section>
-              <h2 className="mb-3 text-lg font-semibold">Questions</h2>
+              <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                <h2 className="text-lg font-semibold">Questions</h2>
+                {aiEnabled ? (
+                  <form action={generateQuizQuestions} className="flex items-end gap-2">
+                    <input type="hidden" name="lessonId" value={lesson.id} />
+                    <div>
+                      <Label htmlFor="ai-count">How many</Label>
+                      <Input id="ai-count" name="count" type="number" min={1} max={15} defaultValue={5} className="w-20" />
+                    </div>
+                    <SubmitButton size="sm" variant="secondary" pendingText="Generating…">
+                      ✨ Generate questions from this course&apos;s lessons
+                    </SubmitButton>
+                  </form>
+                ) : null}
+              </div>
               <QuestionEditor lessonId={lesson.id} questions={lesson.questions} />
             </section>
           ) : null}

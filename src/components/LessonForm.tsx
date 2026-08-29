@@ -7,6 +7,7 @@ import { LESSON_TYPES, LESSON_TYPE_ICONS, LESSON_TYPE_LABELS, type LessonType } 
 import { Alert, Field, Input, Label, Select, Textarea } from "./ui";
 import { SubmitButton } from "./SubmitButton";
 import { MediaUpload } from "./MediaUpload";
+import { AiDraftButton } from "./AiForms";
 
 type LessonValues = {
   id: string;
@@ -139,7 +140,10 @@ export function LessonForm({ lesson }: { lesson: LessonValues }) {
           <Label htmlFor="body" hint="Markdown · GFM">
             {type === "QUIZ" ? "Instructions" : "Content"}
           </Label>
-          <div className="flex gap-1 text-xs">
+          <div className="flex items-center gap-1 text-xs">
+            {type !== "QUIZ" ? (
+              <AiDraftButton lessonId={lesson.id} getTitle={() => (document.getElementById("title") as HTMLInputElement | null)?.value || lesson.title} onDraft={(md) => setBody(md)} />
+            ) : null}
             <button type="button" className="rounded px-2 py-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800" onClick={() => insertAtCursor("## Heading\n\nText…")}>
               + Heading
             </button>

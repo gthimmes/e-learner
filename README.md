@@ -40,6 +40,7 @@ Or register fresh — the **first account created becomes the admin**.
 
 | Discovery | Catalog **search**, tags and levels, sort by newest / popular / top rated, featured courses; **ratings & reviews** from enrolled learners; **learning paths** — ordered course bundles with per-course and path progress (`/paths`) |
 | Engagement | Learner **profile** (`/me`) with daily streak, points, badges and a 14-day activity strip; badges for first lesson, 7-day streak, quiz ace, course/path completion, reviewing; **cohort leaderboard**; in-app **notifications** (bell) and per-course **announcements** (in-app + optional email) |
+| Copilot | **Draft a course from a prompt** (outline, lessons, quizzes → a draft to edit), **draft lesson bodies**, **generate quiz questions** from the course text, and a **learner tutor** grounded in the current lesson; Anthropic Messages API when `ANTHROPIC_API_KEY` is set, deterministic mock otherwise; per-user rate limit; audited |
 | Operations | Webhook **outbox with retries** and dead-letter view; **S3-compatible storage** adapter (AWS/MinIO/R2); **Redis** rate limiting; `/api/health`; structured JSON logs; error reporting hook; **admin analytics** dashboard and **audit log**; Dockerfile + docker-compose |
 | Commerce | Paid courses (price + currency per course) with **Stripe Checkout** (or an in-app mock provider when Stripe isn't configured); coupons (% off, max uses, expiry, 100 % = free enrollment); refunds that revoke access; per-course sales &amp; revenue page; Stripe webhook for async confirmation and external refunds |
 
@@ -55,6 +56,10 @@ Set a price under the course's Details. Without Stripe keys, checkout uses an in
 - Webhooks POST JSON for `enrollment.created`, `lesson.completed`, `course.completed`, `quiz.attempted`; verify `X-Elearner-Signature` (`sha256=` HMAC of the raw body with the webhook secret).
 - Set `XAPI_LRS_URL` (+ `XAPI_LRS_AUTH`) to forward statements to a Learning Record Store as they happen.
 - **SCORM**: course editor → *SCORM* downloads a SCORM 1.2 zip (one SCO per lesson, bundled uploads, completion reporting).
+
+### AI copilot setup
+
+Set `ANTHROPIC_API_KEY` (and optionally `AI_MODEL`, default `claude-sonnet-5`). Without a key the copilot still works with a deterministic mock so dev, CI and demos never depend on the network; set `AI_DISABLED=1` to hide it entirely. Everything the copilot produces is a **draft** the author reviews; the learner tutor answers only from the lesson text and refuses to hand out quiz answers.
 
 ### SSO setup
 
