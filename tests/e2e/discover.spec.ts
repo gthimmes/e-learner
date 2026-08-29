@@ -80,7 +80,7 @@ test("search, learning path and reviews", async ({ page }) => {
     await page.waitForURL(new RegExp(`/learn/${c1.slug}/`));
     await page.getByRole("button", { name: /Mark complete/ }).click();
     await page.waitForURL(/\/done$/);
-    await expect(page.getByText("Course complete!")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Course complete!" })).toBeVisible();
 
     // Review the course from the done page nudge.
     await page.getByRole("link", { name: /Rate this course/ }).click();

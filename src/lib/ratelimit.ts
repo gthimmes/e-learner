@@ -19,6 +19,11 @@ export function rateLimit(key: string, limit: number, windowMs: number) {
   return { ok: true, remaining: limit - b.count, retryAfterSec: 0 };
 }
 
+/** Clears a bucket — call after a successful sign-in so only failures count toward the limit. */
+export function rateLimitReset(key: string) {
+  buckets.delete(key);
+}
+
 export async function clientIp() {
   const h = await headers();
   return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "local";

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
 import { firstIssue, loginSchema, registerSchema } from "@/lib/validation";
-import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { clientIp, rateLimit, rateLimitReset } from "@/lib/ratelimit";
 
 export type ActionState = { error?: string; ok?: boolean };
 
@@ -34,15 +34,17 @@ export async function login(_prev: ActionState, formData: FormData): Promise<Act
   if (!parsed.success) return { error: firstIssue(parsed.error) };
   const { email, password } = parsed.data;
 
-  // Brute-force protection: 10 attempts per IP+email per 15 minutes.
+  // Brute-force protection: 10 failed attempts per IP+email per 15 minutes (a success resets it).
   const ip = await clientIp();
-  const rl = rateLimit(`login:${ip}:${email}`, 10, 15 * 60_000);
+  const rlKey = `login:${ip}:${email}`;
+  const rl = rateLimit(rlKey, 10, 15 * 60_000);
   if (!rl.ok) return { error: `Too many sign-in attempts. Try again in ${Math.ceil(rl.retryAfterSec / 60)} minute(s).` };
 
   const user = await db.user.findUnique({ where: { email } });
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return { error: "Incorrect email or password." };
   }
+  rateLimitReset(rlKey);
   await createSession(user.id);
   redirect(safeNext(formData.get("next")));
 }

@@ -6,6 +6,7 @@ export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 60_000,
   retries: 0,
+  expect: { timeout: 10_000 }, // dev-mode compiles on first hit can exceed the 5 s default
   use: {
     baseURL: `http://localhost:${port}`,
     trace: "retain-on-failure",
