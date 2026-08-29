@@ -39,6 +39,7 @@ Or register fresh — the **first account created becomes the admin**.
 | Interop | **Course versions**: snapshot on every publish, manual snapshots, restore (keeps learner progress on surviving lessons); **REST API** with per-user API keys and OpenAPI description (`/api/v1/openapi.json`); **webhooks** (HMAC-signed, delivery log, test ping); **xAPI** statement export + optional live forwarding to an LRS; **SCORM 1.2** package download per course |
 
 | Discovery | Catalog **search**, tags and levels, sort by newest / popular / top rated, featured courses; **ratings & reviews** from enrolled learners; **learning paths** — ordered course bundles with per-course and path progress (`/paths`) |
+| Engagement | Learner **profile** (`/me`) with daily streak, points, badges and a 14-day activity strip; badges for first lesson, 7-day streak, quiz ace, course/path completion, reviewing; **cohort leaderboard**; in-app **notifications** (bell) and per-course **announcements** (in-app + optional email) |
 | Commerce | Paid courses (price + currency per course) with **Stripe Checkout** (or an in-app mock provider when Stripe isn't configured); coupons (% off, max uses, expiry, 100 % = free enrollment); refunds that revoke access; per-course sales &amp; revenue page; Stripe webhook for async confirmation and external refunds |
 
 Roadmap status: **Phases 1–3 shipped** (v0.1–v1.0), **Phase 4 in progress** — see [ROADMAP.md](docs/ROADMAP.md) for the north-star goals and milestones. CI runs lint, typecheck, unit, build and e2e on every push.

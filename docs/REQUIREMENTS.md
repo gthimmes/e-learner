@@ -53,6 +53,10 @@ Priorities use MoSCoW: **M** must, **S** should, **C** could. "Phase" refers to
 | LEARN-14 | Catalog search by keyword, filter by tag and level, sort by popularity / rating. | S | 4 |
 | LEARN-15 | Learning paths: ordered bundles of courses with path-level progress. | S | 4 |
 | LEARN-16 | Enrolled learners can rate (1–5) and review a course; averages shown in the catalog. | C | 4 |
+| LEARN-17 | Daily streaks and points (lessons, quiz passes, completions) with a learner profile page. | S | 4 |
+| LEARN-18 | Badges for milestones (first lesson, 7-day streak, quiz ace, course/path complete, reviewer). | C | 4 |
+| LEARN-19 | In-app notifications (bell + page) and per-course announcements from instructors, optionally emailed. | S | 4 |
+| LEARN-20 | Cohort leaderboard by points (course-wide for authors). | C | 4 |
 
 ## 4. Instructor & admin
 

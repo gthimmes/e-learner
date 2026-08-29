@@ -101,6 +101,12 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - **Essays** (`Question.type = ESSAY`, `Question.rubric`): `grade()` marks them `pending`; the attempt is stored with `status = PENDING` and a provisional score. `gradeAnswer` writes `Answer.pointsAwarded/feedback`, `rescore()` recomputes, and when nothing is pending the attempt becomes `GRADED`, emits `quiz.graded`, and completes the lesson if it passed. Queue: `/author/[courseId]/grading`.
 - **Timed quizzes / question banks** (`Lesson.timeLimitMin`, `Lesson.drawCount`): `startQuiz` creates an `IN_PROGRESS` attempt with a server-side `deadline` and the drawn `questionIds`, so reloads cannot reset the clock or redraw. `QuizTimer` (client) auto-submits at zero; the server accepts submissions within a 15 s grace and otherwise closes the attempt with a zero score (`expireAttempt`). In-progress attempts count toward `maxAttempts` and are excluded from analytics.
 
+### Engagement (v1.3)
+
+- `ActivityDay` (one row per user per UTC day; `visits` from lesson views, `lessons` from completions) feeds `lib/streak.ts#computeStreak` (pure, unit-tested). A streak survives until the end of a day with no activity.
+- Points live on `User.points` (profile) and `Enrollment.points` (cohort leaderboards). `Badge` rows are unique per `(user, key, scope)`; `lib/engage.ts` has the catalogue and the `onLessonCompleted / onCourseCompleted / onQuizPassed / onPathCompleted / onReviewed` hooks called from the corresponding actions.
+- `Notification` (in-app, bell in the nav) and `Announcement` (per course; `publishAnnouncement` fans out notifications and, when asked, email through the mail adapter).
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).

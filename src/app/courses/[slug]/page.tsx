@@ -15,6 +15,7 @@ import { formatDate, formatDuration, pct } from "@/lib/utils";
 import { getCourseReviews, getMyReview, ratingsFor, splitTags } from "@/lib/discovery";
 import { deleteReview } from "@/lib/actions/reviews";
 import { ReviewForm, Stars } from "@/components/Rating";
+import { getAnnouncements } from "@/lib/engage";
 
 export default async function CourseLandingPage({
   params,
@@ -45,6 +46,7 @@ export default async function CourseLandingPage({
   const priceLabel = formatMoney(course.priceCents, course.currency);
   const [reviews, ratings, myReview] = await Promise.all([getCourseReviews(course.id), ratingsFor([course.id]), user ? getMyReview(user.id, course.id) : null]);
   const rating = ratings.get(course.id) ?? { avg: 0, count: 0 };
+  const announcements = enrollment || isAuthor ? await getAnnouncements(course.id, 5) : [];
   const tags = splitTags(course.tags);
 
   return (
@@ -91,6 +93,29 @@ export default async function CourseLandingPage({
           <div className="mt-8">
             <Markdown>{course.description}</Markdown>
           </div>
+
+          {announcements.length > 0 ? (
+            <section id="announcements" className="mt-10">
+              <h2 className="text-xl font-semibold">Announcements</h2>
+              <ul className="mt-4 space-y-3">
+                {announcements.map((a) => (
+                  <li key={a.id} className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 dark:border-indigo-900 dark:bg-indigo-950/20">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h3 className="font-medium">📣 {a.title}</h3>
+                      <span className="text-xs text-zinc-500">
+                        {a.author.name} · {formatDate(a.createdAt)}
+                      </span>
+                    </div>
+                    {a.body ? (
+                      <div className="mt-2 text-sm">
+                        <Markdown>{a.body}</Markdown>
+                      </div>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <h2 className="mt-10 text-xl font-semibold">Course outline</h2>
           <ol className="mt-4 space-y-4">
@@ -175,6 +200,9 @@ export default async function CourseLandingPage({
                 </div>
                 <LinkButton href={`/learn/${course.slug}`} className="mt-4 w-full">
                   {enrollment.completedAt ? "Review course" : progress > 0 ? "Continue learning" : "Start course"}
+                </LinkButton>
+                <LinkButton href={`/learn/${course.slug}/leaderboard`} variant="ghost" size="sm" className="mt-2 w-full">
+                  🏆 Leaderboard
                 </LinkButton>
               </>
             ) : course.status !== "PUBLISHED" ? (

@@ -7,6 +7,7 @@ import { actionUser, getCurrentUser } from "@/lib/auth";
 import { accessSelect, canViewCourse } from "@/lib/courses";
 import { emitEvent } from "@/lib/webhooks";
 import { formStr } from "@/lib/validation";
+import { onCourseCompleted, onLessonCompleted, recordActivity } from "@/lib/engage";
 
 export async function enroll(formData: FormData) {
   const courseId = formStr(formData, "courseId");
@@ -37,10 +38,11 @@ export async function touchLesson(lessonId: string) {
   if (!user) return;
   const lesson = await db.lesson.findUnique({ where: { id: lessonId }, select: { module: { select: { courseId: true } } } });
   if (!lesson) return;
-  await db.enrollment.updateMany({
+  const touched = await db.enrollment.updateMany({
     where: { userId: user.id, courseId: lesson.module.courseId },
     data: { lastLessonId: lessonId },
   });
+  if (touched.count > 0) await recordActivity(user.id, { visits: 1 }); // keeps the streak alive (v1.3)
 }
 
 async function loadEnrollmentForLesson(userId: string, lessonId: string) {
@@ -58,23 +60,26 @@ async function loadEnrollmentForLesson(userId: string, lessonId: string) {
 
 /** Marks a lesson complete; also completes the course when every lesson is done. */
 export async function markLessonComplete(enrollmentId: string, lessonId: string, courseId: string) {
-  await db.lessonProgress.upsert({
-    where: { enrollmentId_lessonId: { enrollmentId, lessonId } },
-    create: { enrollmentId, lessonId },
-    update: {},
-  });
+  const already = await db.lessonProgress.findUnique({ where: { enrollmentId_lessonId: { enrollmentId, lessonId } }, select: { id: true } });
+  if (!already) await db.lessonProgress.create({ data: { enrollmentId, lessonId } });
   const [total, done] = await Promise.all([
     db.lesson.count({ where: { module: { courseId } } }),
     db.lessonProgress.count({ where: { enrollmentId } }),
   ]);
   const [enrollment, lesson] = await Promise.all([
-    db.enrollment.findUnique({ where: { id: enrollmentId }, select: { userId: true } }),
+    db.enrollment.findUnique({ where: { id: enrollmentId }, select: { userId: true, completedAt: true } }),
     db.lesson.findUnique({ where: { id: lessonId }, select: { id: true, title: true } }),
   ]);
-  if (enrollment && lesson) void emitEvent("lesson.completed", courseId, enrollment.userId, { lesson });
+  if (enrollment && lesson && !already) {
+    void emitEvent("lesson.completed", courseId, enrollment.userId, { lesson });
+    await onLessonCompleted(enrollment.userId, enrollmentId); // streaks, points, badges (v1.3)
+  }
   if (total > 0 && done >= total) {
-    await db.enrollment.update({ where: { id: enrollmentId }, data: { completedAt: new Date(), lastLessonId: lessonId } });
-    if (enrollment) void emitEvent("course.completed", courseId, enrollment.userId);
+    await db.enrollment.update({ where: { id: enrollmentId }, data: { completedAt: enrollment?.completedAt ?? new Date(), lastLessonId: lessonId } });
+    if (enrollment && !enrollment.completedAt) {
+      void emitEvent("course.completed", courseId, enrollment.userId);
+      await onCourseCompleted(enrollment.userId, enrollmentId, courseId);
+    }
     return true;
   }
   await db.enrollment.update({ where: { id: enrollmentId }, data: { lastLessonId: lessonId } });

@@ -71,6 +71,11 @@ export default async function LessonPlayerPage({
                 🎓 View certificate
               </Link>
             ) : null}
+            {ctx.enrollment ? (
+              <Link href={`/learn/${slug}/leaderboard`} className="mt-2 block text-xs text-indigo-600 hover:underline">
+                🏆 Leaderboard{ctx.enrollment.cohort ? ` · ${ctx.enrollment.cohort.name}` : ""}
+              </Link>
+            ) : null}
           </div>
           <nav className="max-h-[60vh] overflow-y-auto p-2 lg:max-h-[calc(100vh-14rem)]" aria-label="Course outline">
             {ctx.course.modules.map((m, mi) => (

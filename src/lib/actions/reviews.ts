@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { actionUser } from "@/lib/auth";
 import { canEditCourse, accessSelect } from "@/lib/courses";
 import { firstIssue, formStr, reviewSchema } from "@/lib/validation";
+import { onReviewed } from "@/lib/engage";
 import type { ActionState } from "./auth";
 
 /** Enrolled learners can rate a course once; re-submitting updates the review (LEARN-16). */
@@ -23,6 +24,7 @@ export async function submitReview(_prev: ActionState, formData: FormData): Prom
     update: parsed.data,
     create: { ...parsed.data, userId: user.id, courseId },
   });
+  await onReviewed(user.id);
   revalidatePath("/");
   revalidatePath(`/courses/${enrollment.course.slug}`);
   return { ok: true };

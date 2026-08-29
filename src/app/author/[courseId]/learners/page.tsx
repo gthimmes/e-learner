@@ -134,6 +134,9 @@ export default async function CourseLearnersPage({ params }: { params: Promise<{
                     <div className="flex items-center gap-2">
                       <Input name="name" defaultValue={c.name} aria-label="Cohort name" className="py-1 text-sm" />
                       <span className="shrink-0 text-xs text-zinc-500">{c._count.enrollments} 👤</span>
+                      <a href={`/learn/${course.slug}/leaderboard?cohort=${c.id}`} className="shrink-0 text-xs text-indigo-600 hover:underline">
+                        🏆
+                      </a>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div>

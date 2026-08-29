@@ -6,6 +6,7 @@ import { isAdmin } from "./auth";
 import { canViewCourse, courseStats, outlineInclude, visibleCoursesWhere } from "./courses";
 import { CATALOG_SORTS, COURSE_LEVELS, type CatalogSort } from "./constants";
 import { pct } from "./utils";
+import { onPathCompleted } from "./engage";
 
 // ---------- Tags ----------
 
@@ -187,6 +188,7 @@ export async function getPathProgress(userId: string | null, path: PathWithItems
   const allDone = courses.length > 0 && completedCount === courses.length;
   if (allDone && pathEnrollment && !pathEnrollment.completedAt) {
     await db.pathEnrollment.update({ where: { id: pathEnrollment.id }, data: { completedAt: new Date() } });
+    await onPathCompleted(pathEnrollment.userId, path.id, path.title);
   }
   /** The next course to work on: first not-completed course in order. */
   const next = courses.find((c) => !c.completed)?.item.course ?? null;

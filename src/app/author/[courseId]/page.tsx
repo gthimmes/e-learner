@@ -45,6 +45,9 @@ export default async function CourseEditorPage({
             <LinkButton href={`/author/${course.id}/learners`} variant="secondary">
               Learners
             </LinkButton>
+            <LinkButton href={`/author/${course.id}/announcements`} variant="secondary">
+              Announcements
+            </LinkButton>
             <LinkButton href={`/author/${course.id}/grading`} variant="secondary">
               Grading{pendingGrading ? ` (${pendingGrading})` : ""}
             </LinkButton>

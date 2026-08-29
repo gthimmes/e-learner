@@ -32,6 +32,11 @@ model User {
   purchases      Purchase[]
   reviews        Review[]
   pathEnrollments PathEnrollment[]
+  points         Int            @default(0) // Phase 4 engagement
+  activityDays   ActivityDay[]
+  badges         Badge[]
+  notifications  Notification[]
+  announcements  Announcement[]
 
   @@index([organizationId])
 }
@@ -67,6 +72,7 @@ model Course {
   coupons      Coupon[]
   reviews      Review[]
   pathItems    LearningPathItem[]
+  announcements Announcement[]
 
   @@index([status])
   @@index([organizationId])
@@ -125,6 +131,7 @@ model Enrollment {
   completedAt  DateTime?
   lastLessonId String?
   cohortId     String?
+  points       Int       @default(0) // Phase 4: per-course points for cohort leaderboards
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -445,4 +452,60 @@ model PathEnrollment {
   user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([pathId, userId])
+}
+
+// ---------- Phase 4: engagement (streaks, badges, notifications, announcements) ----------
+
+model ActivityDay {
+  id      String @id @default(cuid())
+  userId  String
+  day     String // YYYY-MM-DD (UTC)
+  lessons Int    @default(0) // lessons completed that day
+  visits  Int    @default(0) // lesson views that day
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+}
+
+model Badge {
+  id       String   @id @default(cuid())
+  userId   String
+  key      String // see BADGES in src/lib/engage.ts
+  courseId String   @default("") // per-course badges (COURSE_COMPLETE); "" for global ones
+  earnedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key, courseId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String // announcement | badge | grade | reminder | system
+  title     String
+  body      String    @default("")
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  courseId  String
+  authorId  String
+  title     String
+  body      String   @default("") // markdown
+  emailed   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, createdAt])
 }

@@ -399,6 +399,26 @@ Wrong answers should be **plausible**: things a learner who half-understood woul
     create: { userId: orgLearner.id, courseId: course.id, rating: 4, body: "Good overview. Would love more on video production." },
   });
 
+  // Engagement demo: a cohort with a due date, some activity, a badge and an announcement.
+  const cohort = await db.cohort.create({
+    data: { courseId: course.id, name: "September 2026", startsAt: new Date(), dueAt: new Date(Date.now() + 30 * 86_400_000) },
+  });
+  await db.enrollment.updateMany({ where: { courseId: course.id, userId: { in: [learner.id, orgLearner.id] } }, data: { cohortId: cohort.id } });
+  await db.enrollment.update({ where: { userId_courseId: { userId: learner.id, courseId: course.id } }, data: { points: 10 } });
+  await db.user.update({ where: { id: learner.id }, data: { points: 10 } });
+  for (let i = 0; i < 3; i++) {
+    const day = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+    await db.activityDay.upsert({ where: { userId_day: { userId: learner.id, day } }, update: {}, create: { userId: learner.id, day, lessons: i === 2 ? 1 : 0, visits: 1 } });
+  }
+  await db.badge.upsert({ where: { userId_key_courseId: { userId: learner.id, key: "FIRST_LESSON", courseId: "" } }, update: {}, create: { userId: learner.id, key: "FIRST_LESSON" } });
+  await db.announcement.create({
+    data: { courseId: course.id, authorId: instructor.id, title: "Welcome to the September cohort", body: "Aim to finish by the due date — and post your questions in the lesson discussions. I answer daily." },
+  });
+  await db.notification.deleteMany({ where: { userId: { in: [learner.id, orgLearner.id] }, type: "announcement" } });
+  await db.notification.createMany({
+    data: [learner.id, orgLearner.id].map((userId) => ({ userId, type: "announcement", title: "📣 Introduction to Online Teaching: Welcome to the September cohort", body: "Aim to finish by the due date.", href: `/courses/${course.slug}#announcements` })),
+  });
+
   // Learning path bundling both public courses.
   await db.learningPath.deleteMany({ where: { slug: "online-instructor" } });
   await db.learningPath.create({

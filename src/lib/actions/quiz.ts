@@ -11,6 +11,7 @@ import { markLessonComplete } from "@/lib/actions/learning";
 import { emitEvent } from "@/lib/webhooks";
 import { QUESTION_TYPES } from "@/lib/constants";
 import { formStr } from "@/lib/validation";
+import { onQuizPassed } from "@/lib/engage";
 
 function editorPath(courseId: string, lessonId: string) {
   return `/author/${courseId}/lessons/${lessonId}`;
@@ -98,10 +99,10 @@ export async function addChoice(formData: FormData) {
   await revalidateLesson(q.lessonId);
 }
 
-export async function deleteChoice(formData: FormData) {
+/** Bound in the editor as `deleteChoice.bind(null, choiceId)` — a button's own name/value is replaced by React's action id. */
+export async function deleteChoice(choiceId: string, formData: FormData) {
   const user = await actionAuthor();
   await updateQuestion(formData);
-  const choiceId = formStr(formData, "choiceId");
   const c = await db.choice.findUnique({ where: { id: choiceId }, select: { questionId: true, question: { select: { lessonId: true } } } });
   if (!c) throw new Error("Choice not found");
   await assertLessonAccess(c.question.lessonId, user);
@@ -121,11 +122,12 @@ export async function deleteQuestion(formData: FormData) {
   await revalidateLesson(q.lessonId);
 }
 
-export async function moveQuestion(formData: FormData) {
+/** Bound in the editor as `moveQuestion.bind(null, "up" | "down")`. */
+export async function moveQuestion(direction: string, formData: FormData) {
   const user = await actionAuthor();
   await updateQuestion(formData);
   const questionId = formStr(formData, "questionId");
-  const dir = formStr(formData, "dir") === "up" ? -1 : 1;
+  const dir = direction === "up" ? -1 : 1;
   const q = await db.question.findUnique({ where: { id: questionId }, select: { lessonId: true } });
   if (!q) throw new Error("Question not found");
   await assertLessonAccess(q.lessonId, user);
@@ -231,7 +233,10 @@ export async function submitQuiz(formData: FormData) {
     lesson: { id: lesson.id, title: lesson.title },
     quiz: { attemptId: attempt.id, score: result.score, passed, pending: result.pending },
   });
-  if (passed) await markLessonComplete(enrollment.id, lessonId, course.id); // QUIZ-4
+  if (passed) {
+    await markLessonComplete(enrollment.id, lessonId, course.id); // QUIZ-4
+    await onQuizPassed(user.id, enrollment.id, result.score);
+  }
   revalidatePath(`/learn/${course.slug}`, "layout");
   revalidatePath("/learn");
   revalidatePath(`/author/${course.id}/grading`);
@@ -272,7 +277,10 @@ export async function gradeAnswer(formData: FormData) {
       lesson: { id: lesson.id, title: lesson.title },
       quiz: { attemptId: answer.attemptId, score: r.score, passed, pending: 0 },
     });
-    if (passed) await markLessonComplete(answer.attempt.enrollment.id, lesson.id, course.id);
+    if (passed) {
+      await markLessonComplete(answer.attempt.enrollment.id, lesson.id, course.id);
+      await onQuizPassed(answer.attempt.enrollment.userId, answer.attempt.enrollment.id, r.score);
+    }
   }
   revalidatePath(`/author/${course.id}/grading`);
   revalidatePath(`/author/${course.id}`, "layout");

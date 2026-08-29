@@ -180,6 +180,21 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
   await check("timed quiz editor shows essay + limit", `/author/${timed.module.course.id}/lessons/${timed.id}`, { cookie: instructor, contains: ["Essay (graded by instructor)", "Rubric", "Time limit", "Questions per attempt"] });
 }
 
+// Engage (v1.3: LEARN-17..20)
+{
+  await check("profile", "/me", { cookie: learner, contains: ["Lee Learner", "day streak", "First step", "Earned", "Last 14 days"] });
+  await check("profile redirects anon", "/me", { expect: 307 });
+  await check("notifications", "/notifications", { cookie: learner, contains: ["Welcome to the September cohort", "Mark all read"] });
+  await check("nav shows unread badge", "/learn", { cookie: learner, contains: ["unread notification", "day streak", "points"] });
+  await check("leaderboard (cohort)", `/learn/${course.slug}/leaderboard`, { cookie: learner, contains: ["Leaderboard", "September 2026", "Lee Learner", "(you)"] });
+  await check("leaderboard (author, whole course)", `/learn/${course.slug}/leaderboard`, { cookie: instructor, contains: ["Whole course", "September 2026"] });
+  await check("landing shows announcements to enrolled", `/courses/${course.slug}`, { cookie: learner, contains: ["Announcements", "Welcome to the September cohort", "Leaderboard"] });
+  const anonLanding = await check("landing hides announcements from anon", `/courses/${course.slug}`);
+  if (anonLanding.text.includes("Welcome to the September cohort")) { failures++; console.log("FAIL announcements leaked to anon"); }
+  await check("announcements editor", `/author/${course.id}/announcements`, { cookie: instructor, contains: ["New announcement", "Welcome to the September cohort", "Also send by email"] });
+  await check("announcements denied for learner", `/author/${course.id}/announcements`, { cookie: learner, expect: 307 });
+}
+
 // CSV export (ADMIN-5)
 await check("csv export (instructor)", `/author/${course.id}/learners/export`, { cookie: instructor, contains: ["name,email,enrolled_at", "learner@example.com", "quiz: Knowledge check"] });
 await check("csv export denied (learner)", `/author/${course.id}/learners/export`, { cookie: learner, expect: 403 });

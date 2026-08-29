@@ -7,7 +7,8 @@ shippable release; nothing in a later phase is a prerequisite for using an earli
 quizzes, gating, certificates, cohorts, discussion, orgs, SSO, versions, REST API, webhooks,
 xAPI, SCORM, payments). Phase 4 🔨 in progress — v1.1 ✅ (catalog search, tags/levels, sort, featured,
 ratings & reviews, learning paths, API search + paths) · v1.2 ✅ (essay questions with a
-grading queue, timed quizzes with auto-submit, question banks). Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
+grading queue, timed quizzes with auto-submit, question banks) · v1.3 ✅ (profile with streaks,
+points and badges; cohort leaderboard; notifications; course announcements with email). Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
 
 ## North-star goals (Phases 4–5)
 

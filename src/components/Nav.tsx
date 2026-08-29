@@ -2,9 +2,11 @@ import Link from "next/link";
 import { getCurrentUser, canAuthor, isAdmin } from "@/lib/auth";
 import { logout } from "@/lib/actions/auth";
 import { initials } from "@/lib/utils";
+import { unreadCount } from "@/lib/engage";
 
 export async function Nav() {
   const user = await getCurrentUser();
+  const unread = user ? await unreadCount(user.id) : 0;
   const link = "rounded-md px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white";
 
   return (
@@ -28,12 +30,16 @@ export async function Nav() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              <span className="hidden items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 sm:flex">
+              <Link href="/notifications" className={`${link} relative`} aria-label={unread ? `${unread} unread notifications` : "Notifications"}>
+                🔔
+                {unread ? <span className="absolute -right-0.5 -top-0.5 rounded-full bg-red-600 px-1.5 text-[10px] font-semibold text-white">{unread}</span> : null}
+              </Link>
+              <Link href="/me" className="hidden items-center gap-2 rounded-md px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 sm:flex">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-700 dark:bg-zinc-700 dark:text-zinc-100">
                   {initials(user.name)}
                 </span>
                 {user.name}
-              </span>
+              </Link>
               <form action={logout}>
                 <button className={link}>Sign out</button>
               </form>

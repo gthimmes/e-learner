@@ -24,10 +24,10 @@ export function QuestionEditor({ lessonId, questions }: { lessonId: string; ques
                 Q{i + 1} · {QUESTION_TYPE_LABELS[type]}
               </span>
               <div className="ml-auto flex items-center gap-1">
-                <button formAction={moveQuestion} name="dir" value="up" className={iconBtn} disabled={i === 0} aria-label="Move question up">
+                <button formAction={moveQuestion.bind(null, "up")} className={iconBtn} disabled={i === 0} aria-label="Move question up">
                   ▲
                 </button>
-                <button formAction={moveQuestion} name="dir" value="down" className={iconBtn} disabled={i === questions.length - 1} aria-label="Move question down">
+                <button formAction={moveQuestion.bind(null, "down")} className={iconBtn} disabled={i === questions.length - 1} aria-label="Move question down">
                   ▼
                 </button>
                 <button formAction={deleteQuestion} className={`${iconBtn} hover:text-red-600`} aria-label="Delete question">
@@ -64,7 +64,7 @@ export function QuestionEditor({ lessonId, questions }: { lessonId: string; ques
                       )}
                       <Input name={`choice_${c.id}`} defaultValue={c.text} placeholder="Choice text" readOnly={type === "TRUE_FALSE"} />
                       {type !== "TRUE_FALSE" ? (
-                        <button formAction={deleteChoice} name="choiceId" value={c.id} className={`${iconBtn} hover:text-red-600`} disabled={q.choices.length <= 2} aria-label="Remove choice">
+                        <button formAction={deleteChoice.bind(null, c.id)} className={`${iconBtn} hover:text-red-600`} disabled={q.choices.length <= 2} aria-label="Remove choice">
                           ✕
                         </button>
                       ) : null}
