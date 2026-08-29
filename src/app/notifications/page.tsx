@@ -44,7 +44,7 @@ export default async function NotificationsPage() {
               <>
                 <div className="flex items-baseline justify-between gap-3">
                   <span className={n.readAt ? "text-zinc-700 dark:text-zinc-300" : "font-semibold"}>{n.title}</span>
-                  <span className="shrink-0 text-xs text-zinc-400">{timeAgo(n.createdAt)}</span>
+                  <span className="shrink-0 text-xs text-zinc-500">{timeAgo(n.createdAt)}</span>
                 </div>
                 {n.body ? <p className="mt-1 line-clamp-3 text-sm text-zinc-500">{n.body}</p> : null}
               </>

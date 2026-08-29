@@ -10,7 +10,7 @@ function Stat({ label, value, hint }: { label: string; value: React.ReactNode; h
     <Card className="text-center">
       <div className="text-3xl font-semibold">{value}</div>
       <div className="mt-1 text-sm text-zinc-500">{label}</div>
-      {hint ? <div className="text-xs text-zinc-400">{hint}</div> : null}
+      {hint ? <div className="text-xs text-zinc-500">{hint}</div> : null}
     </Card>
   );
 }
@@ -63,7 +63,7 @@ export default async function ProfilePage() {
               return (
                 <div key={a.day} className="flex flex-1 flex-col items-center gap-1" title={`${a.day}: ${a.lessons} lesson(s) completed, ${a.visits} visit(s)`}>
                   <div className={`w-full rounded-sm ${a.lessons > 0 ? "bg-indigo-600" : active ? "bg-indigo-300" : "bg-zinc-200 dark:bg-zinc-800"}`} style={{ height: h }} />
-                  <span className="text-[10px] text-zinc-400">{a.day.slice(8)}</span>
+                  <span className="text-[10px] text-zinc-500">{a.day.slice(8)}</span>
                 </div>
               );
             })}
@@ -79,7 +79,7 @@ export default async function ProfilePage() {
             const b = BADGES[k];
             const e = earned.get(k + "");
             return (
-              <div key={k} className={`flex items-center gap-3 rounded-xl border p-4 ${e ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30" : "border-dashed border-zinc-300 opacity-70 dark:border-zinc-700"}`}>
+              <div key={k} className={`flex items-center gap-3 rounded-xl border p-4 ${e ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30" : "border-dashed border-zinc-300 dark:border-zinc-700"}`}>
                 <span className={`text-3xl ${e ? "" : "grayscale"}`} aria-hidden>
                   {b.icon}
                 </span>

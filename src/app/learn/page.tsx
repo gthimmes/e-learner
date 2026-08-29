@@ -5,6 +5,7 @@ import { Badge, EmptyState, LinkButton, PageHeader, ProgressBar } from "@/compon
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { getEngageSummary } from "@/lib/engage";
+import { getT } from "@/lib/i18n";
 
 export const metadata = { title: "My Learning" };
 
@@ -47,38 +48,39 @@ function EnrollmentGrid({ items }: { items: Enrollments }) {
 
 export default async function MyLearningPage() {
   const user = await requireUser("/learn");
-  const [enrollments, engage] = await Promise.all([getMyEnrollments(user.id), getEngageSummary(user.id)]);
+  const [enrollments, engage, t] = await Promise.all([getMyEnrollments(user.id), getEngageSummary(user.id), getT()]);
   const active = enrollments.filter((e) => !e.completedAt);
   const completed = enrollments.filter((e) => e.completedAt);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <PageHeader title="My Learning" subtitle={`Welcome back, ${user.name.split(" ")[0]}.`} actions={<LinkButton href="/" variant="secondary">Browse catalog</LinkButton>} />
+      <PageHeader title={t("learn.title")} subtitle={t("learn.welcome", { name: user.name.split(" ")[0] ?? user.name })} actions={<LinkButton href="/" variant="secondary">{t("learn.browse")}</LinkButton>} />
       <Link href="/me" className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-zinc-200 bg-white px-5 py-3 text-sm hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-900">
         <span>
-          🔥 <strong>{engage.streak.current}</strong>-day streak{engage.streak.activeToday ? "" : engage.streak.current ? " · learn today to keep it" : " · complete a lesson to start one"}
+          🔥 <strong>{t("learn.streak", { n: engage.streak.current })}</strong>
+          {t.locale === "en" ? (engage.streak.activeToday ? "" : engage.streak.current ? " · learn today to keep it" : " · complete a lesson to start one") : ""}
         </span>
         <span>
-          ⭐ <strong>{engage.points}</strong> points
+          ⭐ <strong>{engage.points}</strong> {t("learn.points")}
         </span>
         <span>
-          🏅 <strong>{engage.badgeCount}</strong> badge{engage.badgeCount === 1 ? "" : "s"}
+          🏅 <strong>{engage.badgeCount}</strong> {t("learn.badges")}
         </span>
-        <span className="ml-auto text-indigo-600">View profile →</span>
+        <span className="ml-auto text-indigo-600">{t("learn.profile")}</span>
       </Link>
       {enrollments.length === 0 ? (
-        <EmptyState title="You're not enrolled in any courses yet" body="Pick something from the catalog to get started." action={<LinkButton href="/">Browse the catalog</LinkButton>} />
+        <EmptyState title={t("learn.emptyTitle")} body={t("learn.emptyBody")} action={<LinkButton href="/">{t("learn.browseCta")}</LinkButton>} />
       ) : (
         <div className="space-y-10">
           {active.length ? (
             <section>
-              <h2 className="mb-4 text-lg font-semibold">In progress</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t("learn.inProgress")}</h2>
               <EnrollmentGrid items={active} />
             </section>
           ) : null}
           {completed.length ? (
             <section>
-              <h2 className="mb-4 text-lg font-semibold">Completed</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t("learn.completed")}</h2>
               <EnrollmentGrid items={completed} />
             </section>
           ) : null}

@@ -26,7 +26,7 @@ export default async function SettingsPage() {
         title="Integrations"
         subtitle={
           <>
-            Use the REST API with a key (<code>Authorization: Bearer elk_…</code>) — see <a href="/api/v1/openapi.json" className="text-indigo-600 hover:underline">/api/v1/openapi.json</a>. Webhooks receive signed JSON for course events.
+            Use the REST API with a key (<code>Authorization: Bearer elk_…</code>) — see <a href="/api/v1/openapi.json" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">/api/v1/openapi.json</a>. Webhooks receive signed JSON for course events.
           </>
         }
       />
@@ -54,7 +54,7 @@ export default async function SettingsPage() {
                 ) : (
                   <form action={revokeApiKey}>
                     <input type="hidden" name="keyId" value={k.id} />
-                    <button className="text-xs text-zinc-400 hover:text-red-600">Revoke</button>
+                    <button className="text-xs text-zinc-500 hover:text-red-600">Revoke</button>
                   </form>
                 )}
               </li>
@@ -82,15 +82,15 @@ export default async function SettingsPage() {
                     <Badge tone={h.active ? "success" : "neutral"}>{h.active ? "Active" : "Paused"}</Badge>
                     <form action={testWebhook}>
                       <input type="hidden" name="webhookId" value={h.id} />
-                      <button className="text-xs text-indigo-600 hover:underline">Send test</button>
+                      <button className="text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">Send test</button>
                     </form>
                     <form action={toggleWebhook}>
                       <input type="hidden" name="webhookId" value={h.id} />
-                      <button className="text-xs text-indigo-600 hover:underline">{h.active ? "Pause" : "Resume"}</button>
+                      <button className="text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">{h.active ? "Pause" : "Resume"}</button>
                     </form>
                     <form action={deleteWebhook}>
                       <input type="hidden" name="webhookId" value={h.id} />
-                      <button className="text-xs text-zinc-400 hover:text-red-600">Delete</button>
+                      <button className="text-xs text-zinc-500 hover:text-red-600">Delete</button>
                     </form>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export default async function SettingsPage() {
                           {d.state !== "DELIVERED" ? (
                             <form action={retryDelivery}>
                               <input type="hidden" name="deliveryId" value={d.id} />
-                              <button className="text-indigo-600 hover:underline">Retry now</button>
+                              <button className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">Retry now</button>
                             </form>
                           ) : null}
                         </li>

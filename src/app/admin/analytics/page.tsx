@@ -13,7 +13,7 @@ function Stat({ label, value, hint }: { label: string; value: React.ReactNode; h
     <Card>
       <div className="text-sm text-zinc-500">{label}</div>
       <div className="mt-1 text-3xl font-semibold">{value}</div>
-      {hint ? <div className="mt-1 text-xs text-zinc-400">{hint}</div> : null}
+      {hint ? <div className="mt-1 text-xs text-zinc-500">{hint}</div> : null}
     </Card>
   );
 }
@@ -98,16 +98,16 @@ export default async function AnalyticsPage() {
         subtitle="Platform-wide usage, learning outcomes and operational health."
         actions={
           <div className="flex gap-4 text-sm">
-            <Link href="/admin/users" className="text-indigo-600 hover:underline">
+            <Link href="/admin/users" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
               Users
             </Link>
-            <Link href="/admin/orgs" className="text-indigo-600 hover:underline">
+            <Link href="/admin/orgs" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
               Organizations
             </Link>
-            <Link href="/admin/audit" className="text-indigo-600 hover:underline">
+            <Link href="/admin/audit" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
               Audit log
             </Link>
-            <a href="/api/health" className="text-indigo-600 hover:underline">
+            <a href="/api/health" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
               Health
             </a>
           </div>

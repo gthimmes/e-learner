@@ -52,7 +52,7 @@ export async function Discussion({
             ) : null}
             {canPost && !c.deletedAt ? (
               <details className="mt-2 pl-10">
-                <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">Reply</summary>
+                <summary className="cursor-pointer text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">Reply</summary>
                 <form action={postComment} className="mt-2 space-y-2">
                   <input type="hidden" name="lessonId" value={lessonId} />
                   <input type="hidden" name="parentId" value={c.id} />
@@ -101,11 +101,11 @@ function CommentView({ c, user, isModerator }: { c: CommentRow; user: SessionUse
           {mayDelete ? (
             <form action={deleteComment} className="ml-auto">
               <input type="hidden" name="commentId" value={c.id} />
-              <button className="text-xs text-zinc-400 hover:text-red-600">Delete</button>
+              <button className="text-xs text-zinc-500 hover:text-red-600">Delete</button>
             </form>
           ) : null}
         </div>
-        {c.deletedAt ? <p className="mt-1 text-sm italic text-zinc-400">Comment removed.</p> : <p className="mt-1 whitespace-pre-wrap text-sm">{c.body}</p>}
+        {c.deletedAt ? <p className="mt-1 text-sm italic text-zinc-500">Comment removed.</p> : <p className="mt-1 whitespace-pre-wrap text-sm">{c.body}</p>}
       </div>
     </div>
   );

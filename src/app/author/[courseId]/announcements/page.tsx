@@ -50,7 +50,7 @@ export default async function AnnouncementsPage({ params }: { params: Promise<{ 
                 </div>
                 <form action={deleteAnnouncement}>
                   <input type="hidden" name="announcementId" value={a.id} />
-                  <button className="text-xs text-zinc-400 hover:text-red-600">Delete</button>
+                  <button className="text-xs text-zinc-500 hover:text-red-600">Delete</button>
                 </form>
               </div>
               {a.body ? (

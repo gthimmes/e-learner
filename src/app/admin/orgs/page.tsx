@@ -20,7 +20,7 @@ export default async function AdminOrgsPage() {
         title="Organizations"
         subtitle="Each organization has its own private catalog and admins (ADMIN-6)."
         actions={
-          <Link href="/admin/users" className="text-sm text-indigo-600 hover:underline">
+          <Link href="/admin/users" className="text-sm text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
             Manage users →
           </Link>
         }
@@ -44,7 +44,7 @@ export default async function AdminOrgsPage() {
                   {orgs.map((o) => (
                     <tr key={o.id}>
                       <td className="px-4 py-3">
-                        <Link href={`/admin/orgs/${o.id}`} className="font-medium hover:text-indigo-600 hover:underline">
+                        <Link href={`/admin/orgs/${o.id}`} className="font-medium hover:text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                           {o.name}
                         </Link>
                         <div className="text-xs text-zinc-500">{o.slug}</div>

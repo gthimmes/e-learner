@@ -50,8 +50,8 @@ export function WebhookForm() {
         <legend className="mb-1 text-sm font-medium">Events</legend>
         <div className="grid grid-cols-2 gap-1 text-sm">
           {WEBHOOK_EVENTS.map((e) => (
-            <label key={e} className="flex items-center gap-2">
-              <input type="checkbox" name="events" value={e} defaultChecked /> <code className="text-xs">{e}</code>
+            <label key={e} className="flex items-center gap-2 py-1">
+              <input type="checkbox" name="events" value={e} defaultChecked className="h-5 w-5" /> <code className="text-xs">{e}</code>
             </label>
           ))}
         </div>

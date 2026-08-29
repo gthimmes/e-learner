@@ -270,10 +270,13 @@ model PasswordReset {
 // ---------- Phase 3: organizations & co-authors ----------
 
 model Organization {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  name      String
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  createdAt    DateTime @default(now())
+  logoUrl      String? // Phase 5 branding
+  primaryColor String   @default("") // hex like #0f766e; "" = platform default
+  tagline      String   @default("")
 
   users   User[]
   courses Course[]

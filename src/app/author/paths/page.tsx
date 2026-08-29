@@ -42,7 +42,7 @@ export default async function AuthorPathsPage() {
               {paths.map((p) => (
                 <tr key={p.id}>
                   <td className="px-4 py-3">
-                    <Link href={`/author/paths/${p.id}`} className="font-medium hover:text-indigo-600 hover:underline">
+                    <Link href={`/author/paths/${p.id}`} className="font-medium hover:text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                       {p.title}
                     </Link>
                   </td>

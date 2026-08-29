@@ -5,7 +5,7 @@ import { Button, Input, Label, Select, Textarea } from "./ui";
 type Choice = { id: string; text: string; isCorrect: boolean };
 type Question = { id: string; type: string; prompt: string; explanation: string; answerText: string; rubric: string; points: number; choices: Choice[] };
 
-const iconBtn = "rounded p-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-white";
+const iconBtn = "inline-flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-white";
 
 /** Server-rendered question bank editor for a QUIZ lesson (AUTHOR-10, QUIZ-1). */
 export function QuestionEditor({ lessonId, questions }: { lessonId: string; questions: Question[] }) {
@@ -72,7 +72,7 @@ export function QuestionEditor({ lessonId, questions }: { lessonId: string; ques
                   ))}
                 </ul>
                 {type !== "TRUE_FALSE" ? (
-                  <button formAction={addChoice} className="mt-2 text-xs text-indigo-600 hover:underline">
+                  <button formAction={addChoice} className="mt-2 text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                     + Add choice
                   </button>
                 ) : null}

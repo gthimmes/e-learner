@@ -93,6 +93,16 @@ Priorities use MoSCoW: **M** must, **S** should, **C** could. "Phase" refers to
 | AI-4 | Learner tutor grounded in the current lesson; refuses off-lesson questions and quiz answers. | C | 5 |
 | AI-5 | Works offline with a deterministic mock; per-user rate limits; every generation audited. | M | 5 |
 
+### Global (Phase 5)
+
+| ID | Requirement | MoSCoW | Phase |
+| --- | --- | --- | --- |
+
+| GLB-1 | Organizations can set a name, logo, primary colour and tagline that members see across the app. | S | 5 |
+| GLB-2 | UI strings available in English, Spanish and French; locale from a switcher or the browser. | S | 5 |
+| GLB-3 | Learner and author pages pass an automated WCAG 2.2 AA audit; skip link and labelled landmarks. | M | 5 |
+| GLB-4 | Installable PWA; lessons already opened stay readable offline. | C | 5 |
+
 ## 7. Non-functional
 
 | ID | Requirement | Pri |

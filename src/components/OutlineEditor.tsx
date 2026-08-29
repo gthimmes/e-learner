@@ -7,7 +7,7 @@ import { Button, Input, Select } from "./ui";
 type Lesson = { id: string; title: string; type: string; durationMin: number };
 type Module = { id: string; title: string; summary: string; lessons: Lesson[] };
 
-const iconBtn = "rounded p-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-white";
+const iconBtn = "inline-flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-white";
 
 /** Server-rendered module/lesson tree with reorder and create controls (AUTHOR-2, AUTHOR-6). */
 export function OutlineEditor({ courseId, modules }: { courseId: string; modules: Module[] }) {
@@ -55,7 +55,7 @@ export function OutlineEditor({ courseId, modules }: { courseId: string; modules
                 <span className="w-6 text-center" aria-hidden>
                   {LESSON_TYPE_ICONS[l.type as LessonType]}
                 </span>
-                <Link href={`/author/${courseId}/lessons/${l.id}`} className="flex-1 font-medium hover:text-indigo-600 hover:underline">
+                <Link href={`/author/${courseId}/lessons/${l.id}`} className="flex-1 font-medium hover:text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                   {l.title}
                 </Link>
                 <span className="hidden text-xs text-zinc-500 sm:inline">

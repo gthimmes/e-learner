@@ -39,7 +39,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ sl
             <div className="text-zinc-500">Date completed</div>
           </div>
         </div>
-        <div className="mt-8 text-[10px] text-zinc-400">
+        <div className="mt-8 text-[10px] text-zinc-500">
           Certificate ID {ctx.enrollment.id} · issued by e-learner
         </div>
       </div>

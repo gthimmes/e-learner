@@ -39,7 +39,7 @@ export async function OrgPanel({ orgId, viewer }: { orgId: string; viewer: Sessi
                   <tr key={u.id}>
                     <td className="px-4 py-3">
                       <div className="font-medium">
-                        {u.name} {u.id === viewer.id ? <span className="text-xs text-zinc-400">(you)</span> : null}
+                        {u.name} {u.id === viewer.id ? <span className="text-xs text-zinc-500">(you)</span> : null}
                       </div>
                       <div className="text-xs text-zinc-500">
                         {u.email} · joined {formatDate(u.createdAt)}
@@ -53,7 +53,7 @@ export async function OrgPanel({ orgId, viewer }: { orgId: string; viewer: Sessi
                         <input type="hidden" name="orgId" value={org.id} />
                         <input type="hidden" name="userId" value={u.id} />
                         <input type="hidden" name="orgAdmin" value={u.orgAdmin ? "" : "on"} />
-                        <button className="text-xs text-indigo-600 hover:underline">{u.orgAdmin ? "Revoke admin" : "Make admin"}</button>
+                        <button className="text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">{u.orgAdmin ? "Revoke admin" : "Make admin"}</button>
                         {u.orgAdmin ? <Badge tone="success">Admin</Badge> : null}
                       </form>
                     </td>
@@ -61,7 +61,7 @@ export async function OrgPanel({ orgId, viewer }: { orgId: string; viewer: Sessi
                       <form action={removeMember}>
                         <input type="hidden" name="orgId" value={org.id} />
                         <input type="hidden" name="userId" value={u.id} />
-                        <button className="text-xs text-zinc-400 hover:text-red-600">Remove</button>
+                        <button className="text-xs text-zinc-500 hover:text-red-600">Remove</button>
                       </form>
                     </td>
                   </tr>
@@ -89,7 +89,7 @@ export async function OrgPanel({ orgId, viewer }: { orgId: string; viewer: Sessi
               {org.courses.map((c) => (
                 <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                   <div>
-                    <Link href={`/author/${c.id}`} className="font-medium hover:text-indigo-600 hover:underline">
+                    <Link href={`/author/${c.id}`} className="font-medium hover:text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                       {c.title}
                     </Link>
                     <div className="text-xs text-zinc-500">
@@ -107,13 +107,25 @@ export async function OrgPanel({ orgId, viewer }: { orgId: string; viewer: Sessi
       <aside className="space-y-6">
         <Card>
           <h2 className="text-sm font-semibold">Settings</h2>
-          <form action={updateOrganization} className="mt-2 flex gap-2">
+          <form action={updateOrganization} className="mt-2 space-y-2">
             <input type="hidden" name="orgId" value={org.id} />
             <Input name="name" defaultValue={org.name} aria-label="Organization name" required />
+            <Input name="tagline" defaultValue={org.tagline} placeholder="Tagline (shown in the footer)" aria-label="Tagline" maxLength={120} />
+            <Input name="logoUrl" defaultValue={org.logoUrl ?? ""} placeholder="Logo URL (square image)" aria-label="Logo URL" />
+            <div className="flex items-center gap-2">
+              <label htmlFor="org-color" className="text-xs text-zinc-500">
+                Primary colour
+              </label>
+              <input id="org-color" type="color" name="primaryColor" defaultValue={org.primaryColor || "#4f46e5"} className="h-8 w-12 cursor-pointer rounded border border-zinc-300" />
+              <label className="flex items-center gap-1 text-xs text-zinc-500">
+                <input type="checkbox" name="resetColor" /> use platform default
+              </label>
+            </div>
             <Button type="submit" variant="secondary" size="sm">
-              Save
+              Save branding
             </Button>
           </form>
+          <p className="mt-2 text-xs text-zinc-500">Members see your name, logo and colour across the app.</p>
           <p className="mt-2 text-xs text-zinc-500">
             Slug: <code>{org.slug}</code> · created {formatDate(org.createdAt)}
           </p>

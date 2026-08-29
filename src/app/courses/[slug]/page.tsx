@@ -132,7 +132,7 @@ export default async function CourseLandingPage({
                       <span className="flex items-center gap-2">
                         <span aria-hidden>{LESSON_TYPE_ICONS[l.type as LessonType]}</span>
                         {enrollment || isAuthor ? (
-                          <Link href={`/learn/${course.slug}/${l.id}`} className="hover:text-indigo-600 hover:underline">
+                          <Link href={`/learn/${course.slug}/${l.id}`} className="hover:text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                             {l.title}
                           </Link>
                         ) : (
@@ -142,7 +142,7 @@ export default async function CourseLandingPage({
                       <span className="text-xs text-zinc-500">{formatDuration(l.durationMin)}</span>
                     </li>
                   ))}
-                  {m.lessons.length === 0 ? <li className="px-4 py-2.5 text-sm text-zinc-400">No lessons yet</li> : null}
+                  {m.lessons.length === 0 ? <li className="px-4 py-2.5 text-sm text-zinc-500">No lessons yet</li> : null}
                 </ul>
               </li>
             ))}
@@ -172,12 +172,12 @@ export default async function CourseLandingPage({
                           {"★".repeat(r.rating)}
                           <span className="text-zinc-300 dark:text-zinc-600">{"★".repeat(5 - r.rating)}</span>
                         </span>
-                        <span className="text-xs text-zinc-400">{formatDate(r.createdAt)}</span>
+                        <span className="text-xs text-zinc-500">{formatDate(r.createdAt)}</span>
                       </div>
                       {user && (r.userId === user.id || isAuthor) ? (
                         <form action={deleteReview}>
                           <input type="hidden" name="reviewId" value={r.id} />
-                          <button className="text-xs text-zinc-400 hover:text-red-600">Remove</button>
+                          <button className="text-xs text-zinc-500 hover:text-red-600">Remove</button>
                         </form>
                       ) : null}
                     </div>

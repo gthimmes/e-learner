@@ -69,7 +69,9 @@ export default async function PricingPage({ params }: { params: Promise<{ course
                       <th className="px-4 py-3">Amount</th>
                       <th className="px-4 py-3">Status</th>
                       <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3" />
+                      <th className="px-4 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -128,11 +130,11 @@ export default async function PricingPage({ params }: { params: Promise<{ course
                     <form action={toggleCoupon}>
                       <input type="hidden" name="couponId" value={c.id} />
                       <input type="hidden" name="active" value={c.active ? "on" : ""} />
-                      <button className="text-xs text-indigo-600 hover:underline">{c.active ? "Disable" : "Enable"}</button>
+                      <button className="text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">{c.active ? "Disable" : "Enable"}</button>
                     </form>
                     <form action={deleteCoupon}>
                       <input type="hidden" name="couponId" value={c.id} />
-                      <button className="text-xs text-zinc-400 hover:text-red-600">Delete</button>
+                      <button className="text-xs text-zinc-500 hover:text-red-600">Delete</button>
                     </form>
                   </div>
                 </li>

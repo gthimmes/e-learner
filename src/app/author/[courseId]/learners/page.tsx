@@ -57,7 +57,9 @@ export default async function CourseLearnersPage({ params }: { params: Promise<{
                     <th className="px-4 py-3">Cohort</th>
                     <th className="w-52 px-4 py-3">Progress</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3" />
+                    <th className="px-4 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -80,7 +82,7 @@ export default async function CourseLearnersPage({ params }: { params: Promise<{
                               </option>
                             ))}
                           </Select>
-                          <button className="text-xs text-indigo-600 hover:underline">Set</button>
+                          <button className="text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">Set</button>
                         </form>
                       </td>
                       <td className="px-4 py-3">
@@ -105,7 +107,7 @@ export default async function CourseLearnersPage({ params }: { params: Promise<{
                       <td className="px-4 py-3 text-right">
                         <form action={removeEnrollment}>
                           <input type="hidden" name="enrollmentId" value={l.id} />
-                          <button className="text-xs text-zinc-400 hover:text-red-600" title="Remove enrollment and progress">
+                          <button className="text-xs text-zinc-500 hover:text-red-600" title="Remove enrollment and progress">
                             Remove
                           </button>
                         </form>
@@ -134,7 +136,7 @@ export default async function CourseLearnersPage({ params }: { params: Promise<{
                     <div className="flex items-center gap-2">
                       <Input name="name" defaultValue={c.name} aria-label="Cohort name" className="py-1 text-sm" />
                       <span className="shrink-0 text-xs text-zinc-500">{c._count.enrollments} 👤</span>
-                      <a href={`/learn/${course.slug}/leaderboard?cohort=${c.id}`} className="shrink-0 text-xs text-indigo-600 hover:underline">
+                      <a href={`/learn/${course.slug}/leaderboard?cohort=${c.id}`} className="shrink-0 text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                         🏆
                       </a>
                     </div>
@@ -153,7 +155,7 @@ export default async function CourseLearnersPage({ params }: { params: Promise<{
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <button formAction={deleteCohort} className="text-xs text-zinc-400 hover:text-red-600">
+                      <button formAction={deleteCohort} className="text-xs text-zinc-500 hover:text-red-600">
                         Delete cohort
                       </button>
                       <Button type="submit" size="sm" variant="secondary">

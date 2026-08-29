@@ -69,12 +69,12 @@ export default async function LessonPlayerPage({
               </div>
             ) : null}
             {courseComplete ? (
-              <Link href={`/learn/${slug}/certificate`} className="mt-2 block text-xs text-indigo-600 hover:underline">
+              <Link href={`/learn/${slug}/certificate`} className="mt-2 block text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                 🎓 View certificate
               </Link>
             ) : null}
             {ctx.enrollment ? (
-              <Link href={`/learn/${slug}/leaderboard`} className="mt-2 block text-xs text-indigo-600 hover:underline">
+              <Link href={`/learn/${slug}/leaderboard`} className="mt-2 block text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                 🏆 Leaderboard{ctx.enrollment.cohort ? ` · ${ctx.enrollment.cohort.name}` : ""}
               </Link>
             ) : null}
@@ -112,7 +112,7 @@ export default async function LessonPlayerPage({
                             {done ? "✓" : locked ? "🔒" : ""}
                           </span>
                           <span className="truncate">{l.title}</span>
-                          <span className="ml-auto shrink-0 text-xs text-zinc-400">{LESSON_TYPE_ICONS[l.type as LessonType]}</span>
+                          <span className="ml-auto shrink-0 text-xs text-zinc-500">{LESSON_TYPE_ICONS[l.type as LessonType]}</span>
                         </Link>
                       </li>
                     );

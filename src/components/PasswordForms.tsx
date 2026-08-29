@@ -14,7 +14,7 @@ export function ForgotForm() {
       <div className="space-y-4">
         <Alert tone="success">If an account exists for that email, a reset link is on its way. It expires in 60 minutes.</Alert>
         <p className="text-center text-sm text-zinc-500">
-          <Link href="/login" className="text-indigo-600 hover:underline">
+          <Link href="/login" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
             Back to sign in
           </Link>
         </p>
@@ -32,7 +32,7 @@ export function ForgotForm() {
         Send reset link
       </SubmitButton>
       <p className="text-center text-sm text-zinc-500">
-        <Link href="/login" className="text-indigo-600 hover:underline">
+        <Link href="/login" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
           Back to sign in
         </Link>
       </p>

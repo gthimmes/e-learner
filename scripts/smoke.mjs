@@ -207,7 +207,7 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
 
 // Operate (v1.4)
 {
-  await check("health", "/api/health", { contains: ['"ok":true', '"db":{"ok":true', '"storage":{"kind":"local"}', '"version":"2.0.0"', '"ai":{"provider":"mock","enabled":true}'] });
+  await check("health", "/api/health", { contains: ['"ok":true', '"db":{"ok":true', '"storage":{"kind":"local"}', '"version":"2.1.0"', '"ai":{"provider":"mock","enabled":true}'] });
   await check("cron route needs secret", "/api/cron/webhooks", { method: "POST", expect: process.env.CRON_SECRET ? 401 : 404 });
   await check("admin analytics", "/admin/analytics", { cookie: admin, contains: ["Analytics", "Enrollments per day", "Top courses", "Webhook deliveries"] });
   await check("admin analytics denied for instructor", "/admin/analytics", { cookie: instructor, expect: 307 });
@@ -221,6 +221,21 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
   const quizLesson = course.modules[2].lessons[1];
   await check("quiz editor has generate form", `/author/${course.id}/lessons/${quizLesson.id}`, { cookie: instructor, contains: ["Generate questions from this course"] });
   await check("learner lesson has tutor", `/learn/${course.slug}/${lesson0.id}`, { cookie: learner, contains: ["Ask the tutor"] });
+}
+
+// Global (v2.1: branding, i18n, PWA)
+{
+  await check("manifest", "/manifest.webmanifest", { contains: ['"name": "e-learner"', "icon-512.png"] });
+  await check("service worker", "/sw.js", { contains: ["el-sw-v1", "/offline"] });
+  await check("offline page", "/offline", { contains: ["offline"] });
+  await check("org member sees brand", "/", { cookie: orgStaff, contains: ["Acme Corp", "--brand:#0f766e", "Learn. Ship. Repeat.", "Powered by e-learner"] });
+  const plain = await check("public user sees platform brand", "/", { cookie: learner, contains: ["--brand:#4f46e5"] });
+  if (plain.text.includes("Acme Corp")) { failures++; console.log("FAIL public learner sees org brand"); }
+  await check("locale cookie: Spanish catalog", "/", { cookie: "el_locale=es", contains: ["Catálogo de cursos", 'lang="es"', "Iniciar sesión"] });
+  await check("locale cookie: French my learning", "/learn", { cookie: learner + "; el_locale=fr", contains: ["Mon apprentissage", "Bon retour, Lee."] });
+  await check("accept-language negotiation", "/", { headers: { "accept-language": "fr-CA,fr;q=0.9" }, contains: ["Catalogue des cours"] });
+  await check("skip link", "/", { contains: ["Skip to content", 'id="main"'] });
+  await check("org branding form", "/org", { cookie: orgAdmin, contains: ["Primary colour", "Save branding", "Tagline"] });
 }
 
 // CSV export (ADMIN-5)

@@ -26,13 +26,13 @@ export default async function AdminUsersPage() {
         subtitle="Roles decide who can author; organizations scope the catalog (ADMIN-3, ADMIN-6)."
         actions={
           <div className="flex gap-4 text-sm">
-            <Link href="/admin/analytics" className="text-indigo-600 hover:underline">
+            <Link href="/admin/analytics" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
               Analytics
             </Link>
-            <Link href="/admin/audit" className="text-indigo-600 hover:underline">
+            <Link href="/admin/audit" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
               Audit log
             </Link>
-            <Link href="/admin/orgs" className="text-indigo-600 hover:underline">
+            <Link href="/admin/orgs" className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
               Organizations →
             </Link>
           </div>
@@ -47,7 +47,9 @@ export default async function AdminUsersPage() {
               <th className="px-4 py-3">Role</th>
               <th className="px-4 py-3">Organization</th>
               <th className="px-4 py-3">Org admin</th>
-              <th className="px-4 py-3" />
+              <th className="px-4 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -58,7 +60,7 @@ export default async function AdminUsersPage() {
                   <td className="px-4 py-3">
                     <div className="font-medium">
                       {u.name}
-                      {self ? <span className="ml-2 text-xs text-zinc-400">(you)</span> : null}
+                      {self ? <span className="ml-2 text-xs text-zinc-500">(you)</span> : null}
                     </div>
                     <div className="text-xs text-zinc-500">
                       {u.email} · joined {formatDate(u.createdAt)}

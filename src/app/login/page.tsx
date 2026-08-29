@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { oidcEnabled, oidcLabel } from "@/lib/oidc";
 import { AuthForm } from "@/components/AuthForm";
 import { Alert, Card } from "@/components/ui";
+import { getT } from "@/lib/i18n";
 
 export const metadata = { title: "Sign in" };
 
@@ -10,9 +11,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { next, error } = await searchParams;
   if (await getCurrentUser()) redirect(next && next.startsWith("/") ? next : "/learn");
   const sso = oidcEnabled();
+  const t = await getT();
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <h1 className="mb-6 text-center text-2xl font-semibold">Welcome back</h1>
+      <h1 className="mb-6 text-center text-2xl font-semibold">{t("auth.welcomeBack")}</h1>
       <Card>
         {error ? (
           <div className="mb-4">
@@ -27,7 +29,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             >
               🔐 {oidcLabel()}
             </a>
-            <div className="my-4 flex items-center gap-3 text-xs text-zinc-400">
+            <div className="my-4 flex items-center gap-3 text-xs text-zinc-500">
               <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
               or with email
               <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />

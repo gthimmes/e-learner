@@ -14,7 +14,7 @@ export default async function AuditPage() {
         title="Audit log"
         subtitle="Who changed what: roles, organizations, publishing, refunds, keys and webhooks."
         actions={
-          <Link href="/admin/analytics" className="text-sm text-indigo-600 hover:underline">
+          <Link href="/admin/analytics" className="text-sm text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
             ← Analytics
           </Link>
         }

@@ -244,7 +244,8 @@ Thanks for taking the tour — now go build something!`,
   });
 
   // Organization demo: a private org with an org admin, an instructor and a private course.
-  const org = await db.organization.upsert({ where: { slug: "acme" }, update: { name: "Acme Corp" }, create: { slug: "acme", name: "Acme Corp" } });
+  const branding = { name: "Acme Corp", primaryColor: "#0f766e", tagline: "Learn. Ship. Repeat." };
+  const org = await db.organization.upsert({ where: { slug: "acme" }, update: branding, create: { slug: "acme", ...branding } });
   const orgAdmin = await upsertUser("orgadmin@acme.example.com", "Olivia OrgAdmin", "INSTRUCTOR", "password123");
   const orgLearner = await upsertUser("staff@acme.example.com", "Sam Staff", "LEARNER", "password123");
   await db.user.updateMany({ where: { id: { in: [orgAdmin.id, orgLearner.id] } }, data: { organizationId: org.id } });

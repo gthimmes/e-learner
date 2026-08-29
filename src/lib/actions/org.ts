@@ -55,7 +55,12 @@ export async function updateOrganization(formData: FormData) {
   await assertOrgAccess(orgId, user);
   const name = formStr(formData, "name").trim();
   if (!name) throw new Error("Name is required.");
-  await db.organization.update({ where: { id: orgId }, data: { name } });
+  const color = formStr(formData, "primaryColor").trim();
+  const primaryColor = formData.get("resetColor") === "on" ? "" : /^#[0-9a-fA-F]{6}$/.test(color) ? color.toLowerCase() : "";
+  const logoUrl = formStr(formData, "logoUrl").trim().slice(0, 500) || null;
+  const tagline = formStr(formData, "tagline").trim().slice(0, 120);
+  await db.organization.update({ where: { id: orgId }, data: { name, primaryColor, logoUrl, tagline } });
+  revalidatePath("/", "layout");
   revalidateOrg(orgId);
 }
 

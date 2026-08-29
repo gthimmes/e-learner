@@ -59,7 +59,7 @@ export default async function PathPage({ params }: { params: Promise<{ slug: str
                     {c.completed ? "✓" : i + 1}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <Link href={`/courses/${c.item.course.slug}`} className="font-medium hover:text-indigo-600 hover:underline">
+                    <Link href={`/courses/${c.item.course.slug}`} className="font-medium hover:text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                       {c.item.course.title}
                     </Link>
                     {c.item.course.summary ? <p className="mt-0.5 line-clamp-2 text-sm text-zinc-500">{c.item.course.summary}</p> : null}

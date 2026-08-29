@@ -126,7 +126,7 @@ export default async function CourseEditorPage({
                     <form action={removeCoAuthor}>
                       <input type="hidden" name="courseId" value={course.id} />
                       <input type="hidden" name="userId" value={a.userId} />
-                      <button className="text-xs text-zinc-400 hover:text-red-600">Remove</button>
+                      <button className="text-xs text-zinc-500 hover:text-red-600">Remove</button>
                     </form>
                   </li>
                 ))}

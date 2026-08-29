@@ -21,7 +21,7 @@ export function Stars({ value, count, size = "sm" }: { value: number; count?: nu
           {value.toFixed(1)} ({count})
         </span>
       ) : (
-        <span className="text-zinc-400">No reviews yet</span>
+        <span className="text-zinc-500">No reviews yet</span>
       )}
     </span>
   );

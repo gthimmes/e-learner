@@ -120,6 +120,13 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - `lib/ai.ts` — `AiProvider` boundary: `AnthropicProvider` (Messages API over `fetch`, no SDK) or `MockProvider` (deterministic, `lib/ai-mock.ts`). Task functions `draftOutline`, `draftLessonBody`, `generateQuestions`, `summarizeLesson`, `tutorAnswer` build prompts and validate replies through `lib/ai-types.ts` (`parseJsonLoose`, `validateOutline`, `validateQuestions`) so a malformed model reply can never write bad rows.
 - Actions (`actions/ai.ts`) are rate-limited per user (40/h via the rate-limit store), audited (`ai.course`, `ai.questions`), and only ever create **drafts**: `generateCourse` writes a DRAFT course with modules/lessons and quiz questions generated from each module's text; `generateQuizQuestions` appends to a quiz lesson; `draftLesson` returns Markdown for the editor to insert; `askTutor` is stateless and grounded in one lesson (enrolled learners and the author only).
 
+### Global (v2.1)
+
+- **Branding**: `Organization.logoUrl / primaryColor / tagline`; `lib/branding.ts#getBrand` resolves the viewer's org (or the platform default) once per request. The root layout sets `--brand` / `--brand-dark` CSS variables; primary buttons, progress bars and the nav mark use them, so a colour change re-skins the app without touching components.
+- **i18n**: `lib/i18n-dict.ts` (pure catalogue, EN/ES/FR, unit-tested for key parity) + `lib/i18n.ts#getT` (cookie `el_locale`, then `Accept-Language`). Server components call `t("key", vars)`; `<html lang>` follows the locale. Course content is author-written and not translated.
+- **Accessibility**: `tests/e2e/a11y.spec.ts` runs axe-core with the WCAG 2.2 A/AA rule sets over the main learner and author pages and fails on any violation; the layout provides a skip link and landmark labels.
+- **PWA**: `public/manifest.webmanifest` + `public/sw.js` (cache-first for static assets, network-first with cache fallback for `/learn/*` pages, `/offline` fallback). Registered by `PwaRegister` in production only; server actions and API calls are never cached.
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).

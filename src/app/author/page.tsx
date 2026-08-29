@@ -37,14 +37,16 @@ export default async function AuthorDashboard() {
                 <th className="px-4 py-3">Enrolled</th>
                 <th className="px-4 py-3">Completion</th>
                 <th className="px-4 py-3">Updated</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {courses.map((c) => (
                 <tr key={c.id}>
                   <td className="px-4 py-3">
-                    <Link href={`/author/${c.id}`} className="font-medium hover:text-indigo-600 hover:underline">
+                    <Link href={`/author/${c.id}`} className="font-medium hover:text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                       {c.title}
                     </Link>
                     {user.role === "ADMIN" && c.instructor.id !== user.id ? <div className="text-xs text-zinc-500">by {c.instructor.name}</div> : null}
@@ -59,7 +61,7 @@ export default async function AuthorDashboard() {
                   <td className="px-4 py-3">{c.enrollmentCount ? `${pct(c.completedCount, c.enrollmentCount)}%` : "—"}</td>
                   <td className="px-4 py-3 text-zinc-500">{formatDate(c.updatedAt)}</td>
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/author/${c.id}/learners`} className="text-xs text-indigo-600 hover:underline">
+                    <Link href={`/author/${c.id}/learners`} className="text-xs text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
                       Learners
                     </Link>
                   </td>

@@ -6,11 +6,12 @@ import { CourseCard } from "@/components/CourseCard";
 import { Badge, EmptyState, LinkButton, PageHeader, Alert, Input, Select } from "@/components/ui";
 import { CATALOG_SORTS, CATALOG_SORT_LABELS, COURSE_LEVELS, COURSE_LEVEL_LABELS } from "@/lib/constants";
 import { formatDuration } from "@/lib/utils";
+import { getT } from "@/lib/i18n";
 
 type Search = { denied?: string; q?: string; tag?: string; level?: string; sort?: string };
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<Search> }) {
-  const [sp, user] = await Promise.all([searchParams, getCurrentUser()]);
+  const [sp, user, t] = await Promise.all([searchParams, getCurrentUser(), getT()]);
   const [{ courses, query }, tags, paths] = await Promise.all([searchCourses(user, sp), getCatalogTags(user), getPublishedPaths(user)]);
   const filtering = !!(query.q || query.tag || query.level);
 
@@ -28,21 +29,21 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-6xl px-4 py-10">
       {sp.denied ? (
         <div className="mb-6">
-          <Alert>You don&apos;t have access to that page.</Alert>
+          <Alert>{t("catalog.denied")}</Alert>
         </div>
       ) : null}
       <PageHeader
-        title="Course catalog"
-        subtitle="Learn at your own pace. Enroll in a course to start tracking your progress."
-        actions={canAuthor(user) ? <LinkButton href="/author/new">Create a course</LinkButton> : null}
+        title={t("catalog.title")}
+        subtitle={t("catalog.subtitle")}
+        actions={canAuthor(user) ? <LinkButton href="/author/new">{t("catalog.create")}</LinkButton> : null}
       />
 
       {paths.length > 0 && !filtering ? (
         <section className="mb-8">
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-lg font-semibold">Learning paths</h2>
-            <Link href="/paths" className="text-sm text-indigo-600 hover:underline">
-              All paths →
+            <h2 className="text-lg font-semibold">{t("catalog.paths")}</h2>
+            <Link href="/paths" className="text-sm text-indigo-600 underline underline-offset-2 hover:text-indigo-800">
+              {t("catalog.allPaths")}
             </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -65,16 +66,16 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       ) : null}
 
       <form method="get" action="/" className="mb-4 flex flex-col gap-2 sm:flex-row" role="search">
-        <Input name="q" type="search" defaultValue={query.q} placeholder="Search courses…" aria-label="Search courses" className="sm:max-w-sm" />
+        <Input name="q" type="search" defaultValue={query.q} placeholder={t("catalog.searchPlaceholder")} aria-label={t("catalog.searchLabel")} className="sm:max-w-sm" />
         {query.tag ? <input type="hidden" name="tag" value={query.tag} /> : null}
-        <Select name="level" defaultValue={query.level || "ALL"} aria-label="Level">
+        <Select name="level" defaultValue={query.level || "ALL"} aria-label={t("catalog.level")}>
           {COURSE_LEVELS.map((l) => (
             <option key={l} value={l}>
               {COURSE_LEVEL_LABELS[l]}
             </option>
           ))}
         </Select>
-        <Select name="sort" defaultValue={query.sort} aria-label="Sort by">
+        <Select name="sort" defaultValue={query.sort} aria-label={t("catalog.sort")}>
           {CATALOG_SORTS.map((s) => (
             <option key={s} value={s}>
               {CATALOG_SORT_LABELS[s]}
@@ -82,11 +83,11 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           ))}
         </Select>
         <button type="submit" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900">
-          Search
+          {t("catalog.search")}
         </button>
         {filtering ? (
           <Link href="/" className="self-center px-2 text-sm text-zinc-500 hover:underline">
-            Clear
+            {t("catalog.clear")}
           </Link>
         ) : null}
       </form>
@@ -119,10 +120,10 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
       {courses.length === 0 ? (
         <EmptyState
-          title={filtering ? "No courses match" : "No courses published yet"}
+          title={filtering ? t("catalog.noMatch") : t("catalog.empty")}
           body={
             filtering
-              ? "Try a different keyword or clear the filters."
+              ? t("catalog.noMatchBody")
               : canAuthor(user)
                 ? "Create your first course and publish it to see it here."
                 : user
@@ -132,12 +133,12 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           action={
             filtering ? (
               <LinkButton href="/" variant="secondary">
-                Clear filters
+                {t("catalog.clearFilters")}
               </LinkButton>
             ) : canAuthor(user) ? (
-              <LinkButton href="/author/new">Create a course</LinkButton>
+              <LinkButton href="/author/new">{t("catalog.create")}</LinkButton>
             ) : !user ? (
-              <LinkButton href="/register">Get started</LinkButton>
+              <LinkButton href="/register">{t("nav.getStarted")}</LinkButton>
             ) : null
           }
         />
