@@ -127,6 +127,12 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - **Accessibility**: `tests/e2e/a11y.spec.ts` runs axe-core with the WCAG 2.2 A/AA rule sets over the main learner and author pages and fails on any violation; the layout provides a skip link and landmark labels.
 - **PWA**: `public/manifest.webmanifest` + `public/sw.js` (cache-first for static assets, network-first with cache fallback for `/learn/*` pages, `/offline` fallback). Registered by `PwaRegister` in production only; server actions and API calls are never cached.
 
+### Live (v2.2)
+
+- `LiveSession` (course, optional cohort, optional lesson for the recording, join URL) with `SessionRsvp`; `OfficeHourSlot` booked by at most one learner (`updateMany … where bookedById: null` makes booking race-safe).
+- `lib/ics.ts` is a pure RFC 5545 writer (folding, escaping; unit-tested); `GET /api/live/[id].ics` serves invites to enrolled learners and editors, and `createSession` emails the same invite as a `text/calendar` attachment (the mail adapter now carries attachments).
+- Learners see sessions and office hours on the course page (`LiveSessions`), upcoming sessions on My Learning, and recordings inline on the pinned lesson through the existing `MediaPlayer`.
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).

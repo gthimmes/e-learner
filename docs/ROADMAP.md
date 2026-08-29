@@ -14,7 +14,9 @@ v1.4 ✅ (webhook outbox with retries + dead-letter, S3 storage adapter, Redis r
 complete.** Phase 5 🔨 — v2.0 ✅ (AI copilot: draft a course from a prompt, draft lesson
 bodies, generate quiz questions, grounded learner tutor; Anthropic provider + deterministic
 mock for dev/CI) · v2.1 ✅ (per-org branding, UI in EN/ES/FR with a locale switcher, automated
-WCAG 2.2 AA audit in e2e, installable PWA with offline lesson reading). Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
+WCAG 2.2 AA audit in e2e, installable PWA with offline lesson reading) · v2.2 ✅ (live sessions with
+RSVP, calendar invites (.ics by email and download), recordings pinned to lessons, bookable office
+hours). **Phase 5 complete — every planned milestone (v0.1 → v2.2) has shipped.** Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
 
 ## North-star goals (Phases 4–5)
 

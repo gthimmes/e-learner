@@ -1,7 +1,8 @@
 import "server-only";
 import nodemailer from "nodemailer";
 
-export type Mail = { to: string; subject: string; text: string; html?: string };
+export type Attachment = { filename: string; content: string; contentType: string };
+export type Mail = { to: string; subject: string; text: string; html?: string; attachments?: Attachment[] };
 
 export interface Mailer {
   send(mail: Mail): Promise<void>;
@@ -10,7 +11,8 @@ export interface Mailer {
 /** Development mailer: prints the message to the server console. */
 class ConsoleMailer implements Mailer {
   async send(mail: Mail) {
-    console.log(`\n✉  MAIL → ${mail.to}\n   Subject: ${mail.subject}\n${mail.text.split("\n").map((l) => "   " + l).join("\n")}\n`);
+    const att = mail.attachments?.length ? `\n   Attachments: ${mail.attachments.map((a) => a.filename).join(", ")}` : "";
+    console.log(`\n✉  MAIL → ${mail.to}\n   Subject: ${mail.subject}\n${mail.text.split("\n").map((l) => "   " + l).join("\n")}${att}\n`);
   }
 }
 

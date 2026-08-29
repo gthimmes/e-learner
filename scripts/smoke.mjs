@@ -207,7 +207,7 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
 
 // Operate (v1.4)
 {
-  await check("health", "/api/health", { contains: ['"ok":true', '"db":{"ok":true', '"storage":{"kind":"local"}', '"version":"2.1.0"', '"ai":{"provider":"mock","enabled":true}'] });
+  await check("health", "/api/health", { contains: ['"ok":true', '"db":{"ok":true', '"storage":{"kind":"local"}', '"version":"2.2.0"', '"ai":{"provider":"mock","enabled":true}'] });
   await check("cron route needs secret", "/api/cron/webhooks", { method: "POST", expect: process.env.CRON_SECRET ? 401 : 404 });
   await check("admin analytics", "/admin/analytics", { cookie: admin, contains: ["Analytics", "Enrollments per day", "Top courses", "Webhook deliveries"] });
   await check("admin analytics denied for instructor", "/admin/analytics", { cookie: instructor, expect: 307 });
@@ -236,6 +236,21 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
   await check("accept-language negotiation", "/", { headers: { "accept-language": "fr-CA,fr;q=0.9" }, contains: ["Catalogue des cours"] });
   await check("skip link", "/", { contains: ["Skip to content", 'id="main"'] });
   await check("org branding form", "/org", { cookie: orgAdmin, contains: ["Primary colour", "Save branding", "Tagline"] });
+}
+
+// Live (v2.2)
+{
+  await check("author live page", `/author/${course.id}/live`, { cookie: instructor, contains: ["Schedule a session", "Open office-hour slots", "Notify learners and email a calendar invite"] });
+  await check("author live denied for learner", `/author/${course.id}/live`, { cookie: learner, expect: 307 });
+  const instr = await db.user.findUnique({ where: { email: "instructor@example.com" } });
+  const sess = await db.liveSession.create({ data: { courseId: course.id, title: "Smoke session", startsAt: new Date(Date.now() + 3_600_000), endsAt: new Date(Date.now() + 7_200_000), joinUrl: "https://meet.example.com/smoke", createdById: instr.id } });
+  await check("landing shows live session (enrolled)", `/courses/${course.slug}`, { cookie: learner, contains: ["Live sessions", "Smoke session", "Add to calendar", "Going"] });
+  const anonLive = await check("landing hides live from anon", `/courses/${course.slug}`);
+  if (anonLive.text.includes("Smoke session")) { failures++; console.log("FAIL live session leaked to anon"); }
+  await check("ics download (enrolled)", `/api/live/${sess.id}.ics`, { cookie: learner, contains: ["BEGIN:VCALENDAR", "Smoke session", "meet.example.com/smoke"] });
+  await check("ics denied (anon)", `/api/live/${sess.id}.ics`, { expect: 401 });
+  await check("my learning shows upcoming session", "/learn", { cookie: learner, contains: ["Upcoming live sessions", "Smoke session"] });
+  await db.liveSession.delete({ where: { id: sess.id } });
 }
 
 // CSV export (ADMIN-5)

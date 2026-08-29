@@ -37,6 +37,7 @@ model User {
   badges         Badge[]
   notifications  Notification[]
   announcements  Announcement[]
+  rsvps          SessionRsvp[]
 
   @@index([organizationId])
 }
@@ -73,6 +74,8 @@ model Course {
   reviews      Review[]
   pathItems    LearningPathItem[]
   announcements Announcement[]
+  liveSessions  LiveSession[]
+  officeHours   OfficeHourSlot[]
 
   @@index([status])
   @@index([organizationId])
@@ -119,6 +122,7 @@ model Lesson {
   questions Question[]
   attempts  QuizAttempt[]
   comments  Comment[]
+  recordings LiveSession[]
 
   @@index([moduleId, position])
 }
@@ -231,8 +235,9 @@ model Cohort {
   dueAt     DateTime?
   createdAt DateTime  @default(now())
 
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  enrollments Enrollment[]
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollments  Enrollment[]
+  liveSessions LiveSession[]
 
   @@index([courseId])
 }
@@ -534,4 +539,56 @@ model Announcement {
   author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([courseId, createdAt])
+}
+
+// ---------- Phase 5: live sessions & office hours ----------
+
+model LiveSession {
+  id           String   @id @default(cuid())
+  courseId     String
+  cohortId     String? // null = everyone enrolled
+  lessonId     String? // recording is shown on this lesson
+  title        String
+  description  String   @default("")
+  startsAt     DateTime
+  endsAt       DateTime
+  joinUrl      String   @default("")
+  recordingUrl String   @default("")
+  createdById  String
+  createdAt    DateTime @default(now())
+
+  course Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  cohort Cohort?       @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  lesson Lesson?       @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  rsvps  SessionRsvp[]
+
+  @@index([courseId, startsAt])
+}
+
+model SessionRsvp {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  status    String   @default("GOING") // GOING | MAYBE | NO
+  createdAt DateTime @default(now())
+
+  session LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+}
+
+model OfficeHourSlot {
+  id         String   @id @default(cuid())
+  courseId   String
+  hostId     String
+  startsAt   DateTime
+  endsAt     DateTime
+  bookedById String?
+  note       String   @default("")
+  createdAt  DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, startsAt])
 }

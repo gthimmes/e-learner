@@ -16,6 +16,8 @@ import { getCourseReviews, getMyReview, ratingsFor, splitTags } from "@/lib/disc
 import { deleteReview } from "@/lib/actions/reviews";
 import { ReviewForm, Stars } from "@/components/Rating";
 import { getAnnouncements } from "@/lib/engage";
+import { getOfficeHours, getSessions, sessionVisibleTo } from "@/lib/live";
+import { LiveSessions } from "@/components/LiveSessions";
 
 export default async function CourseLandingPage({
   params,
@@ -47,6 +49,8 @@ export default async function CourseLandingPage({
   const [reviews, ratings, myReview] = await Promise.all([getCourseReviews(course.id), ratingsFor([course.id]), user ? getMyReview(user.id, course.id) : null]);
   const rating = ratings.get(course.id) ?? { avg: 0, count: 0 };
   const announcements = enrollment || isAuthor ? await getAnnouncements(course.id, 5) : [];
+  const [liveSessions, officeHours] = enrollment || isAuthor ? await Promise.all([getSessions(course.id, user?.id ?? null), getOfficeHours(course.id)]) : [[], []];
+  const visibleSessions = liveSessions.filter((s) => sessionVisibleTo(user, course, enrollment ? { cohortId: enrollment.cohortId } : null, s));
   const tags = splitTags(course.tags);
 
   return (
@@ -116,6 +120,8 @@ export default async function CourseLandingPage({
               </ul>
             </section>
           ) : null}
+
+          {enrollment || isAuthor ? <LiveSessions sessions={visibleSessions} slots={officeHours} userId={user?.id ?? null} canBook={!!enrollment} /> : null}
 
           <h2 className="mt-10 text-xl font-semibold">Course outline</h2>
           <ol className="mt-4 space-y-4">

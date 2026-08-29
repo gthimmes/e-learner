@@ -103,6 +103,15 @@ Priorities use MoSCoW: **M** must, **S** should, **C** could. "Phase" refers to
 | GLB-3 | Learner and author pages pass an automated WCAG 2.2 AA audit; skip link and labelled landmarks. | M | 5 |
 | GLB-4 | Installable PWA; lessons already opened stay readable offline. | C | 5 |
 
+### Live (Phase 5)
+
+| ID | Requirement | MoSCoW | Phase |
+| --- | --- | --- | --- |
+| LIVE-1 | Schedule live sessions per course or cohort with a join link; learners get a notification and a calendar invite. | S | 5 |
+| LIVE-2 | RSVP (going / maybe / can't) with counts; downloadable .ics. | C | 5 |
+| LIVE-3 | Attach a recording to a session and pin it to a lesson. | S | 5 |
+| LIVE-4 | Office hours: instructors open slots, learners book one with a topic, hosts are notified. | C | 5 |
+
 ## 7. Non-functional
 
 | ID | Requirement | Pri |

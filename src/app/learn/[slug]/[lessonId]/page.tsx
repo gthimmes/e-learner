@@ -11,6 +11,7 @@ import { Discussion } from "@/components/Discussion";
 import { TrackLesson } from "@/components/TrackLesson";
 import { AiTutor } from "@/components/AiForms";
 import { aiEnabled } from "@/lib/ai";
+import { getRecordingsForLesson } from "@/lib/live";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Badge, LinkButton, ProgressBar } from "@/components/ui";
 import { LESSON_TYPE_ICONS, LESSON_TYPE_LABELS, type LessonType } from "@/lib/constants";
@@ -41,6 +42,7 @@ export default async function LessonPlayerPage({
   const unlocked = isLessonUnlocked(ctx, lesson.id) || isAuthor;
   const doneCount = ctx.lessons.filter((l) => ctx.completed.has(l.id)).length;
   const basePath = `/learn/${slug}/${lesson.id}`;
+  const recordings = await getRecordingsForLesson(lesson.id);
   const courseComplete = !!ctx.enrollment?.completedAt;
 
   return (
@@ -150,6 +152,12 @@ export default async function LessonPlayerPage({
               <div className="mt-6">
                 <Markdown>{lesson.body}</Markdown>
               </div>
+              {recordings.map((r) => (
+                <div key={r.id} className="mt-6 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                  <div className="mb-2 text-sm font-medium">🎥 Session recording: {r.title}</div>
+                  <MediaPlayer type="VIDEO" url={r.recordingUrl} caption={`Recorded ${formatDate(r.startsAt)}`} title={r.title} />
+                </div>
+              ))}
               {aiEnabled && !isQuiz && (ctx.enrollment || isAuthor) && lesson.body.trim().length > 40 ? <AiTutor lessonId={lesson.id} lessonTitle={lesson.title} /> : null}
               {isQuiz ? <QuizPlayer lesson={lesson} enrollmentId={ctx.enrollment?.id ?? null} attemptId={attempt} takeId={take} basePath={basePath} /> : null}
             </>
