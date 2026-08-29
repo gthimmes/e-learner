@@ -3,24 +3,24 @@
 Requirement IDs reference [REQUIREMENTS.md](./REQUIREMENTS.md). Each phase ends in a
 shippable release; nothing in a later phase is a prerequisite for using an earlier one.
 
-**Status (2026-08-25):** Phase 1 ✅ shipped · Phase 2 ✅ shipped (v0.4–v0.6, all listed
-requirements) · Phase 3 🔨 in progress — v0.7 ✅ (cohorts with due dates + reminders,
-per-lesson discussion, password reset, rate-limited auth, CI on every push) · v0.8 ✅
-(organizations with isolated catalogs and org admins, co-authors, OIDC SSO) · v0.9 ✅ (course
-versions with restore, REST API + API keys + OpenAPI, signed webhooks, xAPI export/forwarding,
-SCORM 1.2 export) · v1.0 ✅ (paid courses via Stripe Checkout with a mock provider for
-dev/CI, coupons, refunds, sales page). **All planned milestones are shipped.**
-Tests: unit (grading), HTTP smoke (~80 checks incl. API, webhook delivery, SCORM, commerce),
-Playwright e2e (main flow, password reset, SSO, purchase + refund).
+**Status (2026-08-28):** Phases 1–3 ✅ shipped (v0.1–v1.0: authoring, media, learning,
+quizzes, gating, certificates, cohorts, discussion, orgs, SSO, versions, REST API, webhooks,
+xAPI, SCORM, payments). Phase 4 🔨 in progress — see the milestone table below for what has
+landed. Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
 
-### What's next (post-1.0 candidates)
+## North-star goals (Phases 4–5)
 
-- Webhook retries with backoff and a dead-letter view; Redis-backed rate limiting for multi-instance deploys
-- S3 storage adapter implementation; image resizing for covers
-- Error reporting (Sentry) and product analytics events
-- Essay questions with manual grading, timed quizzes (QUIZ-7/8)
-- Learner-facing search, tags/categories in the catalog
-- Multiple orgs per user; per-org branding
+These are deliberately ambitious. Each one is measurable and each milestone below moves at
+least one of them.
+
+| # | Goal | Measure |
+| --- | --- | --- |
+| G1 | **Zero-to-course in 15 minutes** | A new instructor publishes a 10-lesson course with a passing quiz in ≤ 15 min, with AI drafting the outline and questions |
+| G2 | **Learners come back** | 7-day return rate ≥ 40 % driven by streaks, badges, reminders and learning paths |
+| G3 | **Any content, any question type** | Auto-graded *and* human-graded assessment (essays), timed exams, question banks |
+| G4 | **Runs anywhere, plugs into anything** | One container on Postgres + S3 + Redis; SCORM/xAPI/REST/webhooks with retries; 10 k concurrent learners on a single instance |
+| G5 | **Accessible and global** | WCAG 2.2 AA on every learner surface; UI strings translatable; per-org branding and domains |
+| G6 | **Nothing ships unverified** | Every milestone adds e2e coverage; CI green on every push; a recorded product demo per release |
 
 ## Phase 1 — Learn (v0.1 → v0.3) · *content courses end-to-end*
 
@@ -60,6 +60,33 @@ instructor can identify the three hardest questions in any quiz from the dashboa
 | **v0.8 Organizations** | Multi-tenant orgs with isolated catalogs and admins; co-authors; SSO (OIDC) | ADMIN-6, AUTHOR-12, AUTH-7 |
 | **v0.9 Interop** | Course versioning; SCORM / xAPI statement export; public REST API + webhooks | AUTHOR-13 |
 | **v1.0 Commerce** | Paid courses (Stripe), coupons, refunds; hosted offering | — |
+
+## Phase 4 — Delight (v1.1 → v1.4) · *learners choose it, operators trust it*
+
+**Goal:** turn a complete LMS into one people prefer: discoverable content, richer
+assessment, habit-forming engagement, and production-grade operations.
+
+| Milestone | Scope | Goals |
+| --- | --- | --- |
+| **v1.1 Discover** | Catalog search, tags and levels, sort by popularity / rating; ratings & reviews; **learning paths** (ordered course bundles with path progress); API exposes search + ratings | G2 |
+| **v1.2 Assess II** | Essay questions with an instructor grading queue and rubric feedback; timed quizzes with auto-submit; question banks with random draw; attempt review with per-question feedback | G3 |
+| **v1.3 Engage** | Learner profile; daily streaks and badges (first lesson, course complete, quiz ace, 7-day streak); cohort leaderboard; in-app notifications and course announcements (with email) | G2 |
+| **v1.4 Operate** | Webhook retries with backoff + dead-letter view; S3-compatible storage adapter; Redis-backed rate limiting; `/api/health`; structured request logs; admin analytics dashboard (enrollments, completions, time-in-lesson); audit log | G4, G6 |
+
+**Exit criteria:** a learner can find a course by keyword or tag, rate it, and follow a
+learning path to completion with a streak intact; an essay can be graded by an instructor
+and unlock course completion; the platform runs on Postgres + S3 + Redis from one container
+with retried webhooks.
+
+## Phase 5 — Intelligence (v2.0) · *the platform helps you teach*
+
+**Goal:** collapse authoring time with an AI copilot and make the product global.
+
+| Milestone | Scope | Goals |
+| --- | --- | --- |
+| **v2.0 Copilot** | Draft a course outline from a prompt; generate lessons and quiz questions from source text; per-lesson AI tutor for learners (grounded in the lesson); auto-summaries; model provider adapter with a deterministic mock for dev/CI | G1 |
+| **v2.1 Global** | Per-org branding (logo, colours, custom domain); UI i18n (string catalogue + locale switch); accessibility audit to WCAG 2.2 AA; installable PWA with offline reading | G5 |
+| **v2.2 Live** | Scheduled live sessions with calendar invites and recordings attached to lessons; office-hours booking | G2 |
 
 ## Cross-cutting tracks (every phase)
 
