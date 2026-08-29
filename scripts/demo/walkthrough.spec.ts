@@ -228,7 +228,7 @@ test('e-learner walkthrough', async ({ page, context }) => {
     if (msg.type() === 'error') console.log('CONSOLE_ERROR', msg.text());
   });
   await context.addInitScript(CLUTTER_INIT);
-  test.setTimeout(420_000);
+  test.setTimeout(600_000);
 
   const nav = page.locator('header nav').first();
   const settled = async () => {
@@ -320,7 +320,17 @@ test('e-learner walkthrough', async ({ page, context }) => {
   await caption(page, 'Course player', 'Outline on the left, lesson content on the right. Lessons are Markdown, video, audio, images, downloads or quizzes.');
   await moveTo(page, page.getByRole('heading', { name: 'Welcome!' }), { durationMs: 900 });
   await page.waitForTimeout(ms(2200));
-  await smoothWheel(page, 420, { stepDelta: 70, stepIntervalMs: 55 });
+
+  // AI tutor, grounded in this lesson (mock provider in this take).
+  await click(page, page.getByRole('button', { name: /Ask the tutor/ }));
+  await caption(page, 'AI tutor', 'Every lesson has a tutor that answers only from the lesson text — it explains ideas rather than handing out quiz answers.');
+  await type(page, page.getByLabel('Your question'), 'What is a lesson, in one sentence?', 30);
+  await click(page, page.getByRole('button', { name: 'Ask', exact: true }));
+  await page.getByText(/^Tutor/).last().waitFor();
+  await settled();
+  await page.waitForTimeout(ms(3200));
+  await clearCaption(page);
+  await smoothWheel(page, 320, { stepDelta: 70, stepIntervalMs: 55 });
   await page.waitForTimeout(ms(800));
   await clearCaption(page);
   await click(page, page.getByRole('button', { name: /Mark complete & continue/ }));
@@ -369,6 +379,16 @@ test('e-learner walkthrough', async ({ page, context }) => {
   await page.getByText('Thanks — your review is live.').waitFor();
   await settled();
   await page.waitForTimeout(ms(2600));
+
+  // ---------------- BEAT 8b — Profile: streak, points, badges ----------------
+  await clearCaption(page);
+  await click(page, page.getByRole('link', { name: /Dana Demo/ }).first());
+  await page.waitForURL(/\/me$/);
+  await page.getByRole('heading', { name: 'Badges' }).waitFor();
+  await settled();
+  await caption(page, 'Profile', 'Streaks, points and badges keep learners coming back — Dana already earned “First step” and “Quiz ace”.');
+  await moveTo(page, page.getByText('Quiz ace').first(), { durationMs: 900 });
+  await page.waitForTimeout(ms(3200));
 
   // ---------------- BEAT 9 — Instructor ----------------
   await clearCaption(page);
@@ -432,6 +452,46 @@ test('e-learner walkthrough', async ({ page, context }) => {
   await moveTo(page, page.getByText('Pass rate'), { durationMs: 900 });
   await page.waitForTimeout(ms(3000));
 
+  // ---------------- BEAT 9b — Copilot drafts a course ----------------
+  await clearCaption(page);
+  await click(page, nav.getByRole('link', { name: 'Author' }));
+  await page.waitForURL(/\/author$/);
+  await settled();
+  await click(page, page.getByRole('link', { name: 'New course' }));
+  await page.waitForURL(/\/author\/new/);
+  await page.getByRole('heading', { name: /Draft with AI/ }).waitFor();
+  await settled();
+  await caption(page, 'Copilot', 'Describe a course and the copilot drafts the outline, every lesson and the quiz questions — as a draft the instructor edits.');
+  await type(page, page.getByLabel('What should the course teach?'), 'Practical SQL for analysts: joins, aggregation and window functions', 22);
+  await page.getByLabel('Modules').selectOption('2');
+  await page.getByLabel('Lessons / module').selectOption('3');
+  await click(page, page.getByRole('button', { name: /Draft course/ }));
+  await page.waitForURL(/\/author\/[a-z0-9]+\?ai=1$/, { timeout: 120_000 });
+  await page.getByRole('heading', { name: 'Outline' }).waitFor();
+  await settled();
+  await caption(page, 'Drafted in seconds', 'Two modules, six lessons and a knowledge check per module — every word is editable, nothing is published yet.');
+  await moveTo(page, page.getByRole('heading', { name: 'Outline' }), { durationMs: 900 });
+  await page.waitForTimeout(ms(2400));
+  await smoothWheel(page, 260, { stepDelta: 65, stepIntervalMs: 55 });
+  await page.waitForTimeout(ms(1600));
+  await smoothWheel(page, -260, { stepDelta: 65, stepIntervalMs: 45 });
+
+  // ---------------- BEAT 9c — Live session ----------------
+  await clearCaption(page);
+  await click(page, page.getByRole('link', { name: 'Live', exact: true }));
+  await page.waitForURL(/\/live$/);
+  await page.getByRole('heading', { name: 'Schedule a session' }).waitFor();
+  await settled();
+  await caption(page, 'Live sessions', 'Schedule a session for the course or a cohort; learners get a notification, a calendar invite and RSVP buttons. Recordings can be pinned to lessons afterwards.');
+  await type(page, page.getByLabel('Title'), 'Kickoff Q&A', 40);
+  await page.getByLabel('Starts', { exact: true }).fill('2026-09-03T15:00');
+  await type(page, page.getByLabel('Join URL'), 'https://meet.example.com/kickoff', 20);
+  await click(page, page.getByRole('button', { name: 'Schedule session' }));
+  await page.getByText('Kickoff Q&A').first().waitFor();
+  await settled();
+  await moveTo(page, page.getByText('Kickoff Q&A').first(), { durationMs: 900 });
+  await page.waitForTimeout(ms(2600));
+
   // ---------------- BEAT 10 — Path editor ----------------
   await clearCaption(page);
   await click(page, nav.getByRole('link', { name: 'Author' }));
@@ -453,8 +513,8 @@ test('e-learner walkthrough', async ({ page, context }) => {
   // ---------------- BEAT 11 — Closing cap ----------------
   await caption(
     page,
-    'e-learner v1.1',
-    'In production: the same app also runs Stripe checkout and refunds, SSO, cohort reminders, signed webhooks, xAPI/SCORM export and a REST API — not shown in this take.',
+    'e-learner v2.2',
+    'In production: the same app also runs Stripe checkout, SSO, essay grading queues, timed quizzes, org branding, EN/ES/FR, a PWA, retried webhooks, xAPI/SCORM, a REST API and Docker — not shown in this take.',
   );
   await page.waitForTimeout(ms(5000));
 

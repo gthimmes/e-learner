@@ -32,6 +32,13 @@ least one of them.
 | G5 | **Accessible and global** | WCAG 2.2 AA on every learner surface; UI strings translatable; per-org branding and domains |
 | G6 | **Nothing ships unverified** | Every milestone adds e2e coverage; CI green on every push; a recorded product demo per release |
 
+**Goal status (2026-08-28):** G1 ✅ copilot drafts outline, lessons and quizzes (v2.0) · G2 ✅ streaks,
+badges, paths, announcements, live sessions (v1.1/1.3/2.2) — the 7-day return metric needs real
+traffic to measure · G3 ✅ essays with grading queue, timed quizzes, question banks (v1.2) · G4 ✅
+Docker + Redis + S3 + retried webhooks (v1.4); the 10 k concurrent-learner figure is untested ·
+G5 ✅ WCAG 2.2 AA audit in CI, EN/ES/FR, org branding (v2.1); custom domains not built · G6 ✅
+11 e2e specs + ~150 smoke checks + 33 unit tests, CI green, demo recording harness in-repo.
+
 ## Phase 1 — Learn (v0.1 → v0.3) · *content courses end-to-end*
 
 **Goal:** an instructor can author a course from text, images, audio and video and a learner
