@@ -107,6 +107,14 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - Points live on `User.points` (profile) and `Enrollment.points` (cohort leaderboards). `Badge` rows are unique per `(user, key, scope)`; `lib/engage.ts` has the catalogue and the `onLessonCompleted / onCourseCompleted / onQuizPassed / onPathCompleted / onReviewed` hooks called from the corresponding actions.
 - `Notification` (in-app, bell in the nav) and `Announcement` (per course; `publishAnnouncement` fans out notifications and, when asked, email through the mail adapter).
 
+### Operations (v1.4)
+
+- **Webhook outbox**: `emitEvent` writes one `WebhookDelivery` row per target (`PENDING`, payload stored), attempts it immediately, and drains due retries. `attemptDelivery` applies `lib/retry.ts` — 1 m → 5 m → 30 m → 2 h → 12 h, then `DEAD`; 4xx (except 408/429) dead-letters at once. Drain from anywhere: `POST /api/cron/webhooks` (`CRON_SECRET`) or `npm run webhooks:process`. The Integrations page shows state per delivery with *Retry now*.
+- **Storage**: `S3Storage` implements the same `StorageAdapter` with a self-contained SigV4 signer (`lib/s3sig.ts`, unit-tested against the AWS vectors) — works with AWS S3, MinIO and R2. `S3_PUBLIC_URL` turns `/api/media/*` into a redirect.
+- **Rate limiting**: `RateLimitStore` — memory by default, Redis (`REDIS_URL`, ioredis) for multi-instance deployments, with memory fallback if Redis is unreachable.
+- **Observability**: `lib/log.ts` (JSON lines in production), `src/instrumentation.ts#onRequestError` → `reportError` (optional `ERROR_REPORT_URL`), `/api/health` (db, storage, rate-limit backend, payments provider, mail transport, webhook queue depth). `AuditLog` records privileged actions (`lib/audit.ts`), shown at `/admin/audit`; `/admin/analytics` aggregates usage and outcomes.
+- **Packaging**: multi-stage `Dockerfile` (migrates on start, healthcheck) and `docker-compose.yml` with Redis, MinIO and a retry scheduler.
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).
@@ -179,8 +187,7 @@ uploads/                   local media (git-ignored)
 | `UPLOAD_DIR` | `./uploads` | Local storage root |
 | `MAX_UPLOAD_MB` | `200` | Upload size limit |
 
-Deploy as a Node process (`npm run build && npm start`) or a container. Stateless except
-for `uploads/` (use S3 adapter in prod) and the database.
+Deploy as a Node process (`npm run build && npm start`) or with the `Dockerfile` / `docker-compose.yml`. Stateless except for the database (SQLite volume, or Postgres by switching the Prisma provider); uploads go to S3 when `S3_BUCKET` is set; rate limits share state through Redis when `REDIS_URL` is set.
 
 ## Phase 2 / 3 extension points
 

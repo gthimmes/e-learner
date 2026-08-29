@@ -8,6 +8,7 @@ import { assertCourseAccess, assertLessonAccess, assertModuleAccess, isSlugTaken
 import { courseSchema, firstIssue, formBool, formStr, lessonSchema, moduleSchema, parsePriceCents } from "@/lib/validation";
 import { slugify } from "@/lib/utils";
 import { createVersion } from "@/lib/versions";
+import { audit } from "@/lib/audit";
 import type { ActionState } from "./auth";
 
 function revalidateCourse(courseId: string, slug?: string) {
@@ -97,6 +98,7 @@ export async function setCourseStatus(formData: FormData) {
     data: { status, publishedAt: status === "PUBLISHED" ? new Date() : undefined },
   });
   if (status === "PUBLISHED") await createVersion(courseId, user.id, "Published"); // AUTHOR-13
+  await audit(user, "course.status", { type: "course", id: courseId }, { status, slug: course.slug });
   revalidateCourse(courseId, course.slug);
   redirect(`/author/${courseId}`);
 }
@@ -106,6 +108,7 @@ export async function deleteCourse(formData: FormData) {
   const courseId = formStr(formData, "courseId");
   const course = await assertCourseAccess(courseId, user);
   await db.course.delete({ where: { id: courseId } });
+  await audit(user, "course.delete", { type: "course", id: courseId }, { slug: course.slug });
   revalidateCourse(courseId, course.slug);
   redirect("/author");
 }

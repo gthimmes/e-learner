@@ -63,7 +63,7 @@ export async function buildScormPackage(courseId: string) {
       const meta = await storage.stat(key);
       if (!meta) return null;
       const chunks: Buffer[] = [];
-      for await (const c of storage.stream(key)) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
+      for await (const c of await storage.stream(key)) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
       zip.file(file, Buffer.concat(chunks));
       mediaAdded.add(file);
     }

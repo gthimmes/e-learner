@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { actionAdmin } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { formBool, formStr } from "@/lib/validation";
+import { audit } from "@/lib/audit";
 
 /** Platform admin: set a user's role, organization and org-admin flag (AUTH-4, ADMIN-6). */
 export async function setUserRole(formData: FormData) {
@@ -19,6 +20,7 @@ export async function setUserRole(formData: FormData) {
     throw new Error("Organization not found.");
   }
   await db.user.update({ where: { id: userId }, data: { role, organizationId, orgAdmin } });
+  await audit(admin, "user.role", { type: "user", id: userId }, { role, organizationId, orgAdmin });
   revalidatePath("/admin/users");
   revalidatePath("/admin/orgs", "layout");
   revalidatePath("/org");

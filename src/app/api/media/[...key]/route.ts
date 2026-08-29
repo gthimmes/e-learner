@@ -11,6 +11,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ key: string[] }
   const key = parts.map(decodeURIComponent).join("/");
   if (key.includes("..")) return new Response("Bad request", { status: 400 });
 
+  const publicUrl = storage.publicUrl?.(key);
+  if (publicUrl) return Response.redirect(publicUrl, 302);
+
   const meta = await storage.stat(key);
   if (!meta) return new Response("Not found", { status: 404 });
 
@@ -31,12 +34,12 @@ export async function GET(req: Request, ctx: { params: Promise<{ key: string[] }
       }
       headers["Content-Range"] = `bytes ${start}-${end}/${meta.size}`;
       headers["Content-Length"] = String(end - start + 1);
-      const stream = Readable.toWeb(storage.stream(key, start, end)) as ReadableStream;
+      const stream = Readable.toWeb(await storage.stream(key, start, end)) as ReadableStream;
       return new Response(stream, { status: 206, headers });
     }
   }
 
   headers["Content-Length"] = String(meta.size);
-  const stream = Readable.toWeb(storage.stream(key)) as ReadableStream;
+  const stream = Readable.toWeb(await storage.stream(key)) as ReadableStream;
   return new Response(stream, { status: 200, headers });
 }

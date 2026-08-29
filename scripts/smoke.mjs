@@ -125,9 +125,19 @@ await check("admin sees all courses", "/author", { cookie: admin, contains: ["by
   console.log(`${hit && sigOk ? "PASS" : "FAIL"} webhook delivered with valid signature${hit ? "" : " (no delivery received)"}`);
   if (!(hit && sigOk)) failures++;
   const delivery = await db.webhookDelivery.findFirst({ where: { webhookId: hook.id } });
-  console.log(`${delivery && delivery.status === 200 ? "PASS" : "FAIL"} webhook delivery logged (status ${delivery?.status})`);
-  if (!(delivery && delivery.status === 200)) failures++;
+  console.log(`${delivery && delivery.status === 200 && delivery.state === "DELIVERED" ? "PASS" : "FAIL"} webhook delivery logged (status ${delivery?.status}, state ${delivery?.state})`);
+  if (!(delivery && delivery.status === 200 && delivery.state === "DELIVERED")) failures++;
+  // Outbox: a dead receiver leaves the delivery queued for retry with backoff (v1.4).
   server.close();
+  const dead = await db.webhook.create({ data: { userId: instructorUser.id, url: "http://localhost:3556/nowhere", secret: "whsec_dead", events: "*" } });
+  await db.enrollment.deleteMany({ where: { userId: newbie.id, courseId: course.id } });
+  await check("api: enroll (dead webhook target)", `/api/v1/courses/${course.id}/enrollments`, { method: "POST", headers: { ...bearer, "content-type": "application/json" }, body: JSON.stringify({ email: newbie.email }), expect: 201 });
+  await new Promise((r) => setTimeout(r, 1500));
+  const queued = await db.webhookDelivery.findFirst({ where: { webhookId: dead.id } });
+  console.log(`${queued && queued.state === "FAILED" && queued.attempt === 1 && queued.nextAttemptAt ? "PASS" : "FAIL"} failed delivery scheduled for retry (state ${queued?.state}, attempt ${queued?.attempt})`);
+  if (!(queued && queued.state === "FAILED" && queued.attempt === 1 && queued.nextAttemptAt)) failures++;
+  await check("settings shows retrying delivery", "/settings", { cookie: instructor, contains: ["Retrying", "Retry now", "Delivered"] });
+  await db.webhook.delete({ where: { id: dead.id } });
   await db.webhook.delete({ where: { id: hook.id } });
   await db.user.delete({ where: { id: newbie.id } });
 
@@ -193,6 +203,15 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
   if (anonLanding.text.includes("Welcome to the September cohort")) { failures++; console.log("FAIL announcements leaked to anon"); }
   await check("announcements editor", `/author/${course.id}/announcements`, { cookie: instructor, contains: ["New announcement", "Welcome to the September cohort", "Also send by email"] });
   await check("announcements denied for learner", `/author/${course.id}/announcements`, { cookie: learner, expect: 307 });
+}
+
+// Operate (v1.4)
+{
+  await check("health", "/api/health", { contains: ['"ok":true', '"db":{"ok":true', '"storage":{"kind":"local"}', '"version":"1.4.0"'] });
+  await check("cron route needs secret", "/api/cron/webhooks", { method: "POST", expect: process.env.CRON_SECRET ? 401 : 404 });
+  await check("admin analytics", "/admin/analytics", { cookie: admin, contains: ["Analytics", "Enrollments per day", "Top courses", "Webhook deliveries"] });
+  await check("admin analytics denied for instructor", "/admin/analytics", { cookie: instructor, expect: 307 });
+  await check("admin audit", "/admin/audit", { cookie: admin, contains: ["Audit log"] });
 }
 
 // CSV export (ADMIN-5)

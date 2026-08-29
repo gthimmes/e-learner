@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { actionAuthor } from "@/lib/auth";
 import { generateApiKey } from "@/lib/apikeys";
 import { formStr } from "@/lib/validation";
+import { audit } from "@/lib/audit";
 
 export type ApiKeyState = { error?: string; plaintext?: string; name?: string };
 
@@ -15,6 +16,7 @@ export async function createApiKey(_prev: ApiKeyState, formData: FormData): Prom
   const count = await db.apiKey.count({ where: { userId: user.id, revokedAt: null } });
   if (count >= 10) return { error: "You already have 10 active keys. Revoke one first." };
   const { plaintext } = await generateApiKey(user.id, name);
+  await audit(user, "apikey.create", { type: "apikey", id: plaintext.slice(0, 12) }, { name });
   revalidatePath("/settings");
   return { plaintext, name };
 }
@@ -23,5 +25,6 @@ export async function revokeApiKey(formData: FormData) {
   const user = await actionAuthor();
   const id = formStr(formData, "keyId");
   await db.apiKey.updateMany({ where: { id, userId: user.id }, data: { revokedAt: new Date() } });
+  await audit(user, "apikey.revoke", { type: "apikey", id });
   revalidatePath("/settings");
 }

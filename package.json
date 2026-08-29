@@ -1,6 +1,6 @@
 {
   "name": "e-learner",
-  "version": "0.1.0",
+  "version": "1.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -15,11 +15,13 @@
     "typecheck": "tsc --noEmit",
     "test:smoke": "node scripts/smoke.mjs",
     "test": "node --import tsx --test tests/**/*.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "webhooks:process": "tsx scripts/process-webhooks.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
+    "ioredis": "^6.0.0",
     "jose": "^6.2.10",
     "jszip": "^3.10.1",
     "next": "16.3.3",

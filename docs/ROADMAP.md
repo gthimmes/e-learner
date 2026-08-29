@@ -8,7 +8,10 @@ quizzes, gating, certificates, cohorts, discussion, orgs, SSO, versions, REST AP
 xAPI, SCORM, payments). Phase 4 🔨 in progress — v1.1 ✅ (catalog search, tags/levels, sort, featured,
 ratings & reviews, learning paths, API search + paths) · v1.2 ✅ (essay questions with a
 grading queue, timed quizzes with auto-submit, question banks) · v1.3 ✅ (profile with streaks,
-points and badges; cohort leaderboard; notifications; course announcements with email). Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
+points and badges; cohort leaderboard; notifications; course announcements with email) ·
+v1.4 ✅ (webhook outbox with retries + dead-letter, S3 storage adapter, Redis rate limits,
+/api/health, structured logs + error reporting, admin analytics, audit log, Docker). **Phase 4
+complete.** Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
 
 ## North-star goals (Phases 4–5)
 

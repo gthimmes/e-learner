@@ -40,6 +40,7 @@ Or register fresh — the **first account created becomes the admin**.
 
 | Discovery | Catalog **search**, tags and levels, sort by newest / popular / top rated, featured courses; **ratings & reviews** from enrolled learners; **learning paths** — ordered course bundles with per-course and path progress (`/paths`) |
 | Engagement | Learner **profile** (`/me`) with daily streak, points, badges and a 14-day activity strip; badges for first lesson, 7-day streak, quiz ace, course/path completion, reviewing; **cohort leaderboard**; in-app **notifications** (bell) and per-course **announcements** (in-app + optional email) |
+| Operations | Webhook **outbox with retries** and dead-letter view; **S3-compatible storage** adapter (AWS/MinIO/R2); **Redis** rate limiting; `/api/health`; structured JSON logs; error reporting hook; **admin analytics** dashboard and **audit log**; Dockerfile + docker-compose |
 | Commerce | Paid courses (price + currency per course) with **Stripe Checkout** (or an in-app mock provider when Stripe isn't configured); coupons (% off, max uses, expiry, 100 % = free enrollment); refunds that revoke access; per-course sales &amp; revenue page; Stripe webhook for async confirmation and external refunds |
 
 Roadmap status: **Phases 1–3 shipped** (v0.1–v1.0), **Phase 4 in progress** — see [ROADMAP.md](docs/ROADMAP.md) for the north-star goals and milestones. CI runs lint, typecheck, unit, build and e2e on every push.
@@ -71,6 +72,15 @@ npm run test:e2e       # Playwright end-to-end: author → publish → enroll �
 
 A scripted product walkthrough recording lives in `scripts/demo/` (see its README); `node scripts/cleanup-test-data.mjs` removes rows left behind by e2e runs or demo takes.
 
+## Deploy
+
+```bash
+docker compose up --build        # app on :3000 with Redis + MinIO (S3) + a webhook retry scheduler
+docker compose exec app npm run db:seed
+```
+
+Or build the image alone (`docker build -t e-learner .`) and run it with `SESSION_SECRET`, `DATABASE_URL`, and optionally `REDIS_URL`, `S3_*`, `SMTP_URL`, `STRIPE_*`, `OIDC_*`, `CRON_SECRET`, `ERROR_REPORT_URL`. `GET /api/health` reports dependency status; schedule `POST /api/cron/webhooks` (or `npm run webhooks:process`) every few minutes to retry failed webhooks.
+
 ## Stack
 
 Next.js 16 (App Router, server actions) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 6 ·
@@ -100,6 +110,11 @@ Copy `.env.example` to `.env`:
 | `APP_URL` | `http://localhost:3000` | Base URL used in emails (reset links, reminders) |
 | `SMTP_URL` | unset | `smtp://user:pass@host:587` — when unset, mail is printed to the server console |
 | `MAIL_FROM` | `e-learner <no-reply@localhost>` | Sender address |
+| `REDIS_URL` | unset | Shared rate limiting across instances |
+| `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_FORCE_PATH_STYLE`, `S3_PUBLIC_URL` | unset | S3-compatible uploads (unset = local disk) |
+| `CRON_SECRET` | unset | Enables `POST /api/cron/webhooks` for retrying deliveries |
+| `ERROR_REPORT_URL` | unset | Unhandled server errors are POSTed here as JSON |
+| `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
 
 ## Project layout
 

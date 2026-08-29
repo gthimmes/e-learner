@@ -18,7 +18,7 @@ export async function requestPasswordReset(_prev: ActionState, formData: FormDat
   if (!email) return { error: "Enter your email address." };
 
   const ip = await clientIp();
-  if (!rateLimit(`reset:${ip}`, 5, 15 * 60_000).ok) return { error: "Too many requests. Try again in a few minutes." };
+  if (!(await rateLimit(`reset:${ip}`, 5, 15 * 60_000)).ok) return { error: "Too many requests. Try again in a few minutes." };
 
   const user = await db.user.findUnique({ where: { email }, select: { id: true, name: true } });
   if (user) {

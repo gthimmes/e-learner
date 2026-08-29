@@ -4,7 +4,7 @@ const port = Number(process.env.E2E_PORT || 3100);
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 60_000,
+  timeout: process.env.CI ? 60_000 : 120_000, // dev-mode Turbopack compiles on a cold server can eat most of a minute
   retries: 0,
   expect: { timeout: 10_000 }, // dev-mode compiles on first hit can exceed the 5 s default
   use: {

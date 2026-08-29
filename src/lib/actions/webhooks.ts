@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { actionAuthor } from "@/lib/auth";
 import { WEBHOOK_EVENTS } from "@/lib/constants";
-import { deliver } from "@/lib/webhooks";
+import { deliver, retryDelivery as retryDeliveryNow } from "@/lib/webhooks";
+import { audit } from "@/lib/audit";
 import { formStr } from "@/lib/validation";
 import type { RosterState } from "./roster";
 
@@ -18,7 +19,8 @@ export async function createWebhook(_prev: RosterState, formData: FormData): Pro
   const count = await db.webhook.count({ where: { userId: user.id } });
   if (count >= 10) return { error: "You already have 10 webhooks." };
   const secret = `whsec_${randomBytes(24).toString("base64url")}`;
-  await db.webhook.create({ data: { userId: user.id, url, secret, events } });
+  const hook = await db.webhook.create({ data: { userId: user.id, url, secret, events } });
+  await audit(user, "webhook.create", { type: "webhook", id: hook.id }, { url, events });
   revalidatePath("/settings");
   return { message: `Webhook added. Signing secret (save it now): ${secret}` };
 }
@@ -36,6 +38,7 @@ export async function deleteWebhook(formData: FormData) {
   const user = await actionAuthor();
   const id = formStr(formData, "webhookId");
   await db.webhook.deleteMany({ where: { id, userId: user.id } });
+  await audit(user, "webhook.delete", { type: "webhook", id });
   revalidatePath("/settings");
 }
 
@@ -51,5 +54,15 @@ export async function testWebhook(formData: FormData) {
     course: { id: "test", slug: "test", title: "Test course" },
     user: { id: user.id, email: user.email, name: user.name },
   });
+  revalidatePath("/settings");
+}
+
+/** Re-queues a failed or dead-lettered delivery and attempts it immediately (v1.4). */
+export async function retryDelivery(formData: FormData) {
+  const user = await actionAuthor();
+  const id = formStr(formData, "deliveryId");
+  const d = await db.webhookDelivery.findFirst({ where: { id, webhook: { userId: user.id } }, select: { id: true } });
+  if (!d) throw new Error("Delivery not found.");
+  await retryDeliveryNow(d.id);
   revalidatePath("/settings");
 }

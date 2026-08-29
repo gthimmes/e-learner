@@ -25,9 +25,17 @@ export default async function AdminUsersPage() {
         title="Users"
         subtitle="Roles decide who can author; organizations scope the catalog (ADMIN-3, ADMIN-6)."
         actions={
-          <Link href="/admin/orgs" className="text-sm text-indigo-600 hover:underline">
-            Organizations →
-          </Link>
+          <div className="flex gap-4 text-sm">
+            <Link href="/admin/analytics" className="text-indigo-600 hover:underline">
+              Analytics
+            </Link>
+            <Link href="/admin/audit" className="text-indigo-600 hover:underline">
+              Audit log
+            </Link>
+            <Link href="/admin/orgs" className="text-indigo-600 hover:underline">
+              Organizations →
+            </Link>
+          </div>
         }
       />
       <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">

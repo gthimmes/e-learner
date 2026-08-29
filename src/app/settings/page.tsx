@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revokeApiKey } from "@/lib/actions/apikeys";
-import { deleteWebhook, testWebhook, toggleWebhook } from "@/lib/actions/webhooks";
+import { deleteWebhook, retryDelivery, testWebhook, toggleWebhook } from "@/lib/actions/webhooks";
 import { ApiKeyForm, WebhookForm } from "@/components/SettingsForms";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { formatDate } from "@/lib/utils";
@@ -16,7 +16,7 @@ export default async function SettingsPage() {
     db.webhook.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      include: { deliveries: { orderBy: { createdAt: "desc" }, take: 5 } },
+      include: { deliveries: { orderBy: { createdAt: "desc" }, take: 8 } },
     }),
   ]);
 
@@ -95,19 +95,38 @@ export default async function SettingsPage() {
                   </div>
                 </div>
                 {h.deliveries.length ? (
-                  <ul className="mt-2 flex flex-wrap gap-1.5">
-                    {h.deliveries.map((d) => (
-                      <li key={d.id} className={`rounded px-1.5 py-0.5 text-[11px] ${d.status >= 200 && d.status < 300 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"}`} title={formatDate(d.createdAt)}>
-                        {d.event} → {d.status || "ERR"} · {d.durationMs} ms
-                      </li>
-                    ))}
+                  <ul className="mt-2 space-y-1">
+                    {h.deliveries.map((d) => {
+                      const tone =
+                        d.state === "DELIVERED"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                          : d.state === "DEAD"
+                            ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300";
+                      const label = d.state === "DELIVERED" ? "Delivered" : d.state === "DEAD" ? "Dead-lettered" : d.state === "FAILED" ? "Retrying" : "Queued";
+                      return (
+                        <li key={d.id} className="flex flex-wrap items-center gap-2 text-[11px]" title={d.lastError || formatDate(d.createdAt)}>
+                          <span className={`rounded px-1.5 py-0.5 ${tone}`}>{label}</span>
+                          <span>
+                            {d.event} → {d.status || "ERR"} · {d.durationMs} ms · attempt {d.attempt}
+                          </span>
+                          {d.state === "FAILED" && d.nextAttemptAt ? <span className="text-zinc-500">next {d.nextAttemptAt.toLocaleTimeString()}</span> : null}
+                          {d.state !== "DELIVERED" ? (
+                            <form action={retryDelivery}>
+                              <input type="hidden" name="deliveryId" value={d.id} />
+                              <button className="text-indigo-600 hover:underline">Retry now</button>
+                            </form>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : null}
               </li>
             ))}
           </ul>
           <p className="text-xs text-zinc-500">
-            Each POST carries <code>X-Elearner-Event</code> and <code>X-Elearner-Signature: sha256=HMAC(secret, body)</code>. Verify the signature before trusting the payload.
+            Each POST carries <code>X-Elearner-Event</code> and <code>X-Elearner-Signature: sha256=HMAC(secret, body)</code>. Verify the signature before trusting the payload. Failed deliveries are retried with backoff (1 m → 12 h, 6 attempts) and then dead-lettered; retry them here or via <code>/api/cron/webhooks</code>.
           </p>
         </section>
       </div>

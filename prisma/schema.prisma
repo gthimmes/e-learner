@@ -337,16 +337,39 @@ model Webhook {
 }
 
 model WebhookDelivery {
-  id         String   @id @default(cuid())
-  webhookId  String
-  event      String
-  status     Int // HTTP status, 0 = network error
-  durationMs Int      @default(0)
-  createdAt  DateTime @default(now())
+  id            String    @id @default(cuid())
+  webhookId     String
+  event         String
+  status        Int // last HTTP status, 0 = network error / not yet attempted
+  durationMs    Int       @default(0)
+  state         String    @default("DELIVERED") // PENDING | DELIVERED | FAILED (retrying) | DEAD
+  attempt       Int       @default(1)
+  nextAttemptAt DateTime?
+  payload       String    @default("") // JSON body, kept for retries and the dead-letter view
+  lastError     String    @default("")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
 
   webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@index([webhookId, createdAt])
+  @@index([state, nextAttemptAt])
+}
+
+// ---------- Phase 4: operations ----------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String   @default("")
+  action     String // e.g. course.publish, user.role, purchase.refund
+  targetType String   @default("")
+  targetId   String   @default("")
+  meta       String   @default("{}") // JSON
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
 }
 
 // ---------- Phase 3: commerce ----------

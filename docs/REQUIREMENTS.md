@@ -94,6 +94,10 @@ Priorities use MoSCoW: **M** must, **S** should, **C** could. "Phase" refers to
 | NFR-5 | Responsive layout; course player usable on a phone. | S |
 | NFR-6 | Accessibility: keyboard navigable, semantic headings, captions field on media. | S |
 | NFR-7 | p95 page load < 500 ms for catalog and lesson pages at 10k courses / 100k enrollments. | S |
+| NFR-9 | Webhook deliveries are persisted and retried with exponential backoff; dead-lettered deliveries are visible and retryable. | S | 4 |
+| NFR-10 | Uploads can live on S3-compatible storage; media is proxied with Range support or redirected to a public URL. | S | 4 |
+| NFR-11 | Rate limits shared across instances via Redis; `/api/health` reports dependency status; structured JSON logs; unhandled errors reported to a configurable endpoint. | S | 4 |
+| NFR-12 | Privileged actions (roles, publishing, refunds, keys, webhooks) are written to an audit log. | C | 4 |
 
 ## Out of scope (for now)
 

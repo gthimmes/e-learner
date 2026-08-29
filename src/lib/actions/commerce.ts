@@ -1,5 +1,6 @@
 "use server";
 
+import { audit } from "@/lib/audit";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -82,6 +83,7 @@ export async function refundPurchase(formData: FormData) {
     db.purchase.update({ where: { id: purchaseId }, data: { status: "REFUNDED", refundedAt: new Date() } }),
     db.enrollment.deleteMany({ where: { userId: purchase.userId, courseId: purchase.courseId } }),
   ]);
+  await audit(user, "purchase.refund", { type: "purchase", id: purchaseId }, { amountCents: purchase.amountCents, currency: purchase.currency, userId: purchase.userId });
   revalidatePath(`/author/${purchase.courseId}/pricing`);
   revalidatePath(`/author/${purchase.courseId}/learners`);
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { audit } from "@/lib/audit";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -25,21 +26,23 @@ async function assertOrgAccess(orgId: string, user: SessionUser) {
 // ---------- Platform admin ----------
 
 export async function createOrganization(_prev: RosterState, formData: FormData): Promise<RosterState> {
-  await actionAdmin();
+  const admin = await actionAdmin();
   const name = formStr(formData, "name").trim();
   const slug = formStr(formData, "slug").trim() || slugify(name);
   if (!name) return { error: "Name is required." };
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return { error: "Slug may contain lowercase letters, numbers and hyphens." };
   if (await db.organization.findUnique({ where: { slug } })) return { error: "That slug is already in use." };
   const org = await db.organization.create({ data: { name, slug } });
+  await audit(admin, "org.create", { type: "organization", id: org.id }, { name, slug });
   revalidateOrg(org.id);
   redirect(`/admin/orgs/${org.id}`);
 }
 
 export async function deleteOrganization(formData: FormData) {
-  await actionAdmin();
+  const admin = await actionAdmin();
   const orgId = formStr(formData, "orgId");
-  await db.organization.delete({ where: { id: orgId } }); // users/courses keep existing; organizationId → null
+  await db.organization.delete({ where: { id: orgId } });
+  await audit(admin, "org.delete", { type: "organization", id: orgId }); // users/courses keep existing; organizationId → null
   revalidateOrg();
   redirect("/admin/orgs");
 }
