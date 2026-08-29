@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getCourseForAuthor, courseStats } from "@/lib/courses";
+import { countPendingGrading } from "@/lib/quiz";
 import { deleteCourse, setCourseStatus } from "@/lib/actions/courses";
 import { CourseForm } from "@/components/CourseForm";
 import { CoAuthorForm } from "@/components/OrgForms";
@@ -22,6 +23,7 @@ export default async function CourseEditorPage({
   const course = await getCourseForAuthor(courseId, user);
   if (!course) notFound();
   const stats = courseStats(course);
+  const pendingGrading = await countPendingGrading(course.id);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -42,6 +44,9 @@ export default async function CourseEditorPage({
             </LinkButton>
             <LinkButton href={`/author/${course.id}/learners`} variant="secondary">
               Learners
+            </LinkButton>
+            <LinkButton href={`/author/${course.id}/grading`} variant="secondary">
+              Grading{pendingGrading ? ` (${pendingGrading})` : ""}
             </LinkButton>
             <LinkButton href={`/author/${course.id}/versions`} variant="secondary">
               Versions

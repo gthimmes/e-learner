@@ -96,6 +96,11 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - `Review` (one per user per course, only for enrolled learners) — averages come from a single `groupBy` per page render (`ratingsFor`).
 - `LearningPath` → `LearningPathItem` (ordered courses) and `PathEnrollment`. Path progress is computed from the learner's course enrollments (`getPathProgress`), which also stamps `PathEnrollment.completedAt` when every course is done. Visibility and edit rules mirror courses (`canViewPath` / `canEditPath`).
 
+### Assessment II (v1.2)
+
+- **Essays** (`Question.type = ESSAY`, `Question.rubric`): `grade()` marks them `pending`; the attempt is stored with `status = PENDING` and a provisional score. `gradeAnswer` writes `Answer.pointsAwarded/feedback`, `rescore()` recomputes, and when nothing is pending the attempt becomes `GRADED`, emits `quiz.graded`, and completes the lesson if it passed. Queue: `/author/[courseId]/grading`.
+- **Timed quizzes / question banks** (`Lesson.timeLimitMin`, `Lesson.drawCount`): `startQuiz` creates an `IN_PROGRESS` attempt with a server-side `deadline` and the drawn `questionIds`, so reloads cannot reset the clock or redraw. `QuizTimer` (client) auto-submits at zero; the server accepts submissions within a 15 s grace and otherwise closes the attempt with a zero score (`expireAttempt`). In-progress attempts count toward `maxAttempts` and are excluded from analytics.
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).

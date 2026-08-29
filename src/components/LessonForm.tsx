@@ -20,6 +20,8 @@ type LessonValues = {
   maxAttempts: number;
   shuffleQuestions: boolean;
   showAnswers: boolean;
+  timeLimitMin: number;
+  drawCount: number;
 };
 
 const ACCEPT: Partial<Record<LessonType, string>> = {
@@ -110,13 +112,25 @@ export function LessonForm({ lesson }: { lesson: LessonValues }) {
             </Label>
             <Input id="maxAttempts" name="maxAttempts" type="number" min={0} max={100} defaultValue={lesson.maxAttempts} />
           </Field>
+          <Field>
+            <Label htmlFor="timeLimitMin" hint="minutes, 0 = untimed">
+              Time limit
+            </Label>
+            <Input id="timeLimitMin" name="timeLimitMin" type="number" min={0} max={1440} defaultValue={lesson.timeLimitMin} />
+          </Field>
+          <Field>
+            <Label htmlFor="drawCount" hint="0 = all questions">
+              Questions per attempt
+            </Label>
+            <Input id="drawCount" name="drawCount" type="number" min={0} max={500} defaultValue={lesson.drawCount} />
+          </Field>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="shuffleQuestions" defaultChecked={lesson.shuffleQuestions} /> Shuffle questions
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="showAnswers" defaultChecked={lesson.showAnswers} /> Show correct answers after submitting
           </label>
-          <p className="text-xs text-zinc-500 sm:col-span-2">Questions are edited below the lesson once saved (Phase 2).</p>
+          <p className="text-xs text-zinc-500 sm:col-span-2">Questions are edited below the lesson once saved. Timed quizzes and question banks show a Start button and fix the clock and the drawn questions per attempt; essay questions wait in the Grading queue.</p>
         </div>
       ) : null}
 

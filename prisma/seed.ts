@@ -344,7 +344,8 @@ Wrong answers should be **plausible**: things a learner who half-understood woul
                   position: 2,
                   durationMin: 4,
                   passingScore: 60,
-                  body: "Two quick questions. **60%** to pass.",
+                  timeLimitMin: 10,
+                  body: "Two quick questions and a short essay. **60%** to pass — the essay is graded by your instructor.",
                   questions: {
                     create: [
                       {
@@ -362,6 +363,13 @@ Wrong answers should be **plausible**: things a learner who half-understood woul
                         prompt: "Distractors should be obviously wrong so learners aren't tricked.",
                         explanation: "Distractors should be plausible, not obvious.",
                         choices: { create: [{ text: "True", isCorrect: false, position: 0 }, { text: "False", isCorrect: true, position: 1 }] },
+                      },
+                      {
+                        type: "ESSAY",
+                        position: 2,
+                        points: 3,
+                        prompt: "In two or three sentences: why should a distractor be plausible rather than obviously wrong?",
+                        rubric: "3 pts: explains that obvious distractors do not separate learners who understand from those who guess. 1–2 pts: partial reasoning.",
                       },
                     ],
                   },

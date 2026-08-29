@@ -86,6 +86,8 @@ export const lessonSchema = z.object({
   maxAttempts: z.coerce.number().int().min(0).max(100).default(0),
   shuffleQuestions: z.boolean().default(false),
   showAnswers: z.boolean().default(true),
+  timeLimitMin: z.coerce.number().int().min(0).max(24 * 60).default(0),
+  drawCount: z.coerce.number().int().min(0).max(500).default(0),
 });
 
 export const questionSchema = z.object({

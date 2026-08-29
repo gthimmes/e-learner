@@ -170,6 +170,16 @@ await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { c
   await check("api: courses have rating + tags", "/api/v1/courses?tag=teaching", { cookie: learner, contains: ["\"tags\":[\"teaching\"", "\"rating\":{\"avg\":4.5,\"count\":2}"] });
 }
 
+// Assess II (v1.2: QUIZ-7/8/9)
+{
+  await check("grading queue (instructor)", `/author/${course.id}/grading`, { cookie: instructor, contains: ["Grading queue", "Nothing to grade"] });
+  await check("grading queue denied for learner", `/author/${course.id}/grading`, { cookie: learner, expect: 307 });
+  await check("course editor has Grading button", `/author/${course.id}`, { cookie: instructor, contains: ["Grading"] });
+  const timed = await db.lesson.findFirst({ where: { title: "Check your understanding" }, include: { module: { include: { course: true } } } });
+  await check("timed quiz author preview", `/learn/${timed.module.course.slug}/${timed.id}`, { cookie: instructor, contains: ["10 min time limit", "3 question(s)"] });
+  await check("timed quiz editor shows essay + limit", `/author/${timed.module.course.id}/lessons/${timed.id}`, { cookie: instructor, contains: ["Essay (graded by instructor)", "Rubric", "Time limit", "Questions per attempt"] });
+}
+
 // CSV export (ADMIN-5)
 await check("csv export (instructor)", `/author/${course.id}/learners/export`, { cookie: instructor, contains: ["name,email,enrolled_at", "learner@example.com", "quiz: Knowledge check"] });
 await check("csv export denied (learner)", `/author/${course.id}/learners/export`, { cookie: learner, expect: 403 });

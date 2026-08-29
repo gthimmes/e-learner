@@ -194,6 +194,8 @@ export async function updateLesson(_prev: ActionState, formData: FormData): Prom
     maxAttempts: formStr(formData, "maxAttempts") || 0,
     shuffleQuestions: formBool(formData, "shuffleQuestions"),
     showAnswers: formBool(formData, "showAnswers"),
+    timeLimitMin: formStr(formData, "timeLimitMin") || 0,
+    drawCount: formStr(formData, "drawCount") || 0,
   });
   if (!parsed.success) return { error: firstIssue(parsed.error) };
   await db.lesson.update({

@@ -75,8 +75,9 @@ Priorities use MoSCoW: **M** must, **S** should, **C** could. "Phase" refers to
 | QUIZ-4 | A quiz lesson is complete only when an attempt meets the passing score. | M | 2 |
 | QUIZ-5 | Learner sees attempt history and best score. | S | 2 |
 | QUIZ-6 | Question feedback (explanation shown after answering). | S | 2 |
-| QUIZ-7 | Essay questions with manual grading. | C | 3 |
-| QUIZ-8 | Timed quizzes. | C | 3 |
+| QUIZ-7 | Essay questions with manual grading: instructor queue, points + feedback, attempt re-scored and lesson completed on pass. | S | 4 |
+| QUIZ-8 | Timed quizzes: explicit start, server-side deadline, countdown with auto-submit, expired attempts score 0. | S | 4 |
+| QUIZ-9 | Question banks: draw N random questions per attempt, fixed for that attempt. | C | 4 |
 
 ## 6. Non-functional
 

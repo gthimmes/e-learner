@@ -3,7 +3,7 @@ import { QUESTION_TYPES, QUESTION_TYPE_LABELS, type QuestionType } from "@/lib/c
 import { Button, Input, Label, Select, Textarea } from "./ui";
 
 type Choice = { id: string; text: string; isCorrect: boolean };
-type Question = { id: string; type: string; prompt: string; explanation: string; answerText: string; points: number; choices: Choice[] };
+type Question = { id: string; type: string; prompt: string; explanation: string; answerText: string; rubric: string; points: number; choices: Choice[] };
 
 const iconBtn = "rounded p-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-white";
 
@@ -77,6 +77,13 @@ export function QuestionEditor({ lessonId, questions }: { lessonId: string; ques
                   </button>
                 ) : null}
               </fieldset>
+            ) : type === "ESSAY" ? (
+              <div className="mt-3">
+                <Label htmlFor={`rubric-${q.id}`} hint="grading notes — only instructors see this; points above are the maximum">
+                  Rubric
+                </Label>
+                <Textarea id={`rubric-${q.id}`} name="rubric" rows={2} defaultValue={q.rubric} placeholder="Full marks if the answer covers…" />
+              </div>
             ) : (
               <div className="mt-3">
                 <Label htmlFor={`answer-${q.id}`} hint="accepted answers, one per line; case-insensitive">

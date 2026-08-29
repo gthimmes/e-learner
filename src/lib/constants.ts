@@ -25,7 +25,7 @@ export const LESSON_TYPE_ICONS: Record<LessonType, string> = {
   QUIZ: "✅",
 };
 
-export const QUESTION_TYPES = ["SINGLE", "MULTI", "TRUE_FALSE", "SHORT"] as const;
+export const QUESTION_TYPES = ["SINGLE", "MULTI", "TRUE_FALSE", "SHORT", "ESSAY"] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
@@ -33,6 +33,7 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   MULTI: "Multiple select",
   TRUE_FALSE: "True / False",
   SHORT: "Short answer",
+  ESSAY: "Essay (graded by instructor)",
 };
 
 export const COURSE_LEVELS = ["ALL", "BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
@@ -55,7 +56,7 @@ export const CATALOG_SORT_LABELS: Record<CatalogSort, string> = {
 
 export const CURRENCIES = ["usd", "eur", "gbp", "cad", "aud"] as const;
 
-export const WEBHOOK_EVENTS =["enrollment.created", "lesson.completed", "course.completed", "quiz.attempted"] as const;
+export const WEBHOOK_EVENTS = ["enrollment.created", "lesson.completed", "course.completed", "quiz.attempted", "quiz.graded"] as const;
 
 export const SESSION_COOKIE = "el_session";
 export const SESSION_DAYS = 30;

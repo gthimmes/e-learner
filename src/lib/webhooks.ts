@@ -5,7 +5,7 @@ import { canEditCourse, accessSelect } from "./courses";
 import type { Role } from "./constants";
 import { sendToLrs, statementFor, type XapiEvent } from "./xapi";
 
-export type WebhookEvent = "enrollment.created" | "lesson.completed" | "course.completed" | "quiz.attempted" | "webhook.test";
+export type WebhookEvent = "enrollment.created" | "lesson.completed" | "course.completed" | "quiz.attempted" | "quiz.graded" | "webhook.test";
 
 export type EventPayload = {
   event: WebhookEvent;
@@ -13,7 +13,7 @@ export type EventPayload = {
   course: { id: string; slug: string; title: string };
   user: { id: string; email: string; name: string };
   lesson?: { id: string; title: string };
-  quiz?: { attemptId: string; score: number; passed: boolean };
+  quiz?: { attemptId: string; score: number; passed: boolean; pending?: number };
 };
 
 export function sign(secret: string, body: string) {

@@ -105,6 +105,8 @@ model Lesson {
   maxAttempts      Int     @default(0) // 0 = unlimited
   shuffleQuestions Boolean @default(false)
   showAnswers      Boolean @default(true)
+  timeLimitMin     Int     @default(0) // Phase 4: 0 = untimed
+  drawCount        Int     @default(0) // Phase 4: questions per attempt drawn from the bank, 0 = all
 
   module    Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   progress  LessonProgress[]
@@ -155,6 +157,7 @@ model Question {
   prompt      String // markdown
   explanation String   @default("")
   answerText  String   @default("") // for SHORT: accepted answer(s), one per line
+  rubric      String   @default("") // for ESSAY: grading notes shown to the instructor
   position    Int
   points      Int      @default(1)
 
@@ -181,8 +184,11 @@ model QuizAttempt {
   id           String   @id @default(cuid())
   enrollmentId String
   lessonId     String
-  score        Int // percent 0..100
+  score        Int // percent 0..100 (provisional while PENDING)
   passed       Boolean
+  status       String   @default("GRADED") // IN_PROGRESS | PENDING (essays awaiting grading) | GRADED
+  deadline     DateTime? // timed quizzes
+  questionIds  String   @default("") // JSON array of question ids drawn for this attempt ("" = all)
   startedAt    DateTime @default(now())
   submittedAt  DateTime @default(now())
 
@@ -199,6 +205,9 @@ model Answer {
   questionId String
   response   String // JSON: choice id(s) or text
   correct    Boolean
+  pointsAwarded Int? // ESSAY: set by the grader; null = awaiting grading
+  feedback      String    @default("")
+  gradedAt      DateTime?
 
   attempt  QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)

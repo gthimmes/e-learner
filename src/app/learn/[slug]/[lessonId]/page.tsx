@@ -19,9 +19,9 @@ export default async function LessonPlayerPage({
   searchParams,
 }: {
   params: Promise<{ slug: string; lessonId: string }>;
-  searchParams: Promise<{ attempt?: string }>;
+  searchParams: Promise<{ attempt?: string; take?: string }>;
 }) {
-  const [{ slug, lessonId }, { attempt }] = await Promise.all([params, searchParams]);
+  const [{ slug, lessonId }, { attempt, take }] = await Promise.all([params, searchParams]);
   const user = await requireUser(`/learn/${slug}/${lessonId}`);
   const ctx = await getLearnerContext(user.id, slug);
   if (!ctx) notFound();
@@ -143,7 +143,7 @@ export default async function LessonPlayerPage({
               <div className="mt-6">
                 <Markdown>{lesson.body}</Markdown>
               </div>
-              {isQuiz ? <QuizPlayer lesson={lesson} enrollmentId={ctx.enrollment?.id ?? null} attemptId={attempt} basePath={basePath} /> : null}
+              {isQuiz ? <QuizPlayer lesson={lesson} enrollmentId={ctx.enrollment?.id ?? null} attemptId={attempt} takeId={take} basePath={basePath} /> : null}
             </>
           )}
         </div>

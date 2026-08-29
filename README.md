@@ -29,7 +29,7 @@ Or register fresh — the **first account created becomes the admin**.
 | Area | Features |
 | --- | --- |
 | Authoring | Courses → modules → lessons; lesson types Reading / Video / Audio / Image / Download / **Quiz**; Markdown (GFM) with sanitized rendering; media upload or YouTube/Vimeo links; reorder; draft → publish → archive; preview as learner; sequential (locked) courses |
-| Quizzes | Question types: multiple choice, multiple select, true/false, short answer; points, explanations; pass mark, attempt limits, shuffle, answer reveal; auto-grading; attempt history; passing completes the lesson |
+| Quizzes | Question types: multiple choice, multiple select, true/false, short answer, **essay**; points, explanations, rubrics; pass mark, attempt limits, shuffle, answer reveal; **time limits** with countdown + auto-submit; **question banks** (draw N per attempt); auto-grading plus an instructor **grading queue** for essays (points + feedback re-score the attempt); attempt history; passing completes the lesson |
 | Learning | Public catalog; self-enrollment; course player with outline and completion state; mark complete & continue; next/previous; media playback position memory; My Learning with resume; course completion; printable certificate |
 | Instructor | Dashboard with enrollment and completion counts; per-course learner progress; enroll by email; CSV export; per-quiz analytics (pass rate, average, hardest questions) |
 | Cohorts &amp; community | Cohorts with start / due / end dates; overdue flags for learners and instructors; due-date reminder script (`npx tsx scripts/send-reminders.ts`); per-lesson discussion with replies and moderation |

@@ -3,7 +3,7 @@ import { db } from "./db";
 import { appUrl } from "./mail";
 
 /** xAPI (Tin Can) statements for learner activity. Export via the REST API or forward live to an LRS. */
-export type XapiEvent = "enrollment.created" | "lesson.completed" | "course.completed" | "quiz.attempted";
+export type XapiEvent = "enrollment.created" | "lesson.completed" | "course.completed" | "quiz.attempted" | "quiz.graded";
 
 type Payload = {
   event: XapiEvent;
@@ -11,7 +11,7 @@ type Payload = {
   course: { id: string; slug: string; title: string };
   user: { id: string; email: string; name: string };
   lesson?: { id: string; title: string };
-  quiz?: { attemptId: string; score: number; passed: boolean };
+  quiz?: { attemptId: string; score: number; passed: boolean; pending?: number };
 };
 
 const VERBS: Record<XapiEvent, { id: string; display: string }> = {
@@ -19,6 +19,7 @@ const VERBS: Record<XapiEvent, { id: string; display: string }> = {
   "lesson.completed": { id: "http://adlnet.gov/expapi/verbs/completed", display: "completed" },
   "course.completed": { id: "http://adlnet.gov/expapi/verbs/completed", display: "completed" },
   "quiz.attempted": { id: "http://adlnet.gov/expapi/verbs/answered", display: "answered" },
+  "quiz.graded": { id: "http://adlnet.gov/expapi/verbs/scored", display: "scored" },
 };
 
 export function statementFor(event: XapiEvent, p: Payload) {
@@ -43,7 +44,7 @@ export function statementFor(event: XapiEvent, p: Payload) {
     statement.context = { contextActivities: { parent: [{ id: appUrl(`/courses/${p.course.slug}`), objectType: "Activity" }] } };
   }
   if (event === "course.completed" || event === "lesson.completed") statement.result = { completion: true };
-  if (event === "quiz.attempted" && p.quiz) {
+  if ((event === "quiz.attempted" || event === "quiz.graded") && p.quiz) {
     statement.result = { score: { scaled: p.quiz.score / 100, raw: p.quiz.score, min: 0, max: 100 }, success: p.quiz.passed, completion: p.quiz.passed };
   }
   delete statement.id;

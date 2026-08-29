@@ -65,7 +65,7 @@ export async function GET() {
     },
     "x-webhooks": {
       description: "Configure under Integrations. POST JSON with headers X-Elearner-Event and X-Elearner-Signature (sha256 HMAC of the body).",
-      events: ["enrollment.created", "lesson.completed", "course.completed", "quiz.attempted", "webhook.test"],
+      events: ["enrollment.created", "lesson.completed", "course.completed", "quiz.attempted", "quiz.graded", "webhook.test"],
     },
   });
 }
