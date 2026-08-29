@@ -17,6 +17,7 @@ export async function Nav() {
           </Link>
           <nav className="hidden items-center gap-1 sm:flex">
             <Link href="/" className={link}>Catalog</Link>
+            <Link href="/paths" className={link}>Paths</Link>
             {user ? <Link href="/learn" className={link}>My Learning</Link> : null}
             {canAuthor(user) ? <Link href="/author" className={link}>Author</Link> : null}
             {user?.orgAdmin ? <Link href="/org" className={link}>Organization</Link> : null}

@@ -26,6 +26,11 @@ export default async function CourseDonePage({ params }: { params: Promise<{ slu
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           {complete ? <LinkButton href={`/learn/${slug}/certificate`}>🎓 View certificate</LinkButton> : null}
+          {complete ? (
+            <LinkButton href={`/courses/${slug}#reviews`} variant="secondary">
+              ★ Rate this course
+            </LinkButton>
+          ) : null}
           <LinkButton href="/learn" variant={complete ? "secondary" : "primary"}>
             My Learning
           </LinkButton>

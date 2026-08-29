@@ -15,7 +15,14 @@ export default async function AuthorDashboard() {
       <PageHeader
         title="Your courses"
         subtitle={user.role === "ADMIN" ? "All courses on the platform (admin view)." : "Draft, publish and track your courses."}
-        actions={<LinkButton href="/author/new">New course</LinkButton>}
+        actions={
+          <>
+            <LinkButton href="/author/paths" variant="secondary">
+              Learning paths
+            </LinkButton>
+            <LinkButton href="/author/new">New course</LinkButton>
+          </>
+        }
       />
       {courses.length === 0 ? (
         <EmptyState title="No courses yet" body="Create your first course — a title is all you need to start." action={<LinkButton href="/author/new">Create a course</LinkButton>} />

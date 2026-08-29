@@ -38,9 +38,10 @@ Or register fresh — the **first account created becomes the admin**.
 | Admin | User list with role, organization and org-admin management |
 | Interop | **Course versions**: snapshot on every publish, manual snapshots, restore (keeps learner progress on surviving lessons); **REST API** with per-user API keys and OpenAPI description (`/api/v1/openapi.json`); **webhooks** (HMAC-signed, delivery log, test ping); **xAPI** statement export + optional live forwarding to an LRS; **SCORM 1.2** package download per course |
 
+| Discovery | Catalog **search**, tags and levels, sort by newest / popular / top rated, featured courses; **ratings & reviews** from enrolled learners; **learning paths** — ordered course bundles with per-course and path progress (`/paths`) |
 | Commerce | Paid courses (price + currency per course) with **Stripe Checkout** (or an in-app mock provider when Stripe isn't configured); coupons (% off, max uses, expiry, 100 % = free enrollment); refunds that revoke access; per-course sales &amp; revenue page; Stripe webhook for async confirmation and external refunds |
 
-Roadmap status: **all three phases shipped** (v0.1–v1.0) — see [ROADMAP.md](docs/ROADMAP.md) for what's next. CI runs lint, typecheck, unit, build and e2e on every push.
+Roadmap status: **Phases 1–3 shipped** (v0.1–v1.0), **Phase 4 in progress** — see [ROADMAP.md](docs/ROADMAP.md) for the north-star goals and milestones. CI runs lint, typecheck, unit, build and e2e on every push.
 
 ### Payments setup
 
@@ -48,7 +49,7 @@ Set a price under the course's Details. Without Stripe keys, checkout uses an in
 
 ### REST API, webhooks, xAPI, SCORM
 
-- Create API keys under **Integrations** (instructors/admins). Call `GET /api/v1/me`, `GET /api/v1/courses[?mine=1]`, `GET /api/v1/courses/{id}`, `GET|POST /api/v1/courses/{id}/enrollments`, `GET /api/v1/courses/{id}/xapi` with `Authorization: Bearer elk_…`.
+- Create API keys under **Integrations** (instructors/admins). Call `GET /api/v1/me`, `GET /api/v1/courses[?mine=1|?q=&tag=&level=&sort=]`, `GET /api/v1/paths`, `GET /api/v1/courses/{id}`, `GET|POST /api/v1/courses/{id}/enrollments`, `GET /api/v1/courses/{id}/xapi` with `Authorization: Bearer elk_…`.
 - Webhooks POST JSON for `enrollment.created`, `lesson.completed`, `course.completed`, `quiz.attempted`; verify `X-Elearner-Signature` (`sha256=` HMAC of the raw body with the webhook secret).
 - Set `XAPI_LRS_URL` (+ `XAPI_LRS_AUTH`) to forward statements to a Learning Record Store as they happen.
 - **SCORM**: course editor → *SCORM* downloads a SCORM 1.2 zip (one SCO per lesson, bundled uploads, completion reporting).

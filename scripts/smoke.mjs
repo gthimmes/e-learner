@@ -147,6 +147,29 @@ await check("pricing denied for learner", `/author/${course.id}/pricing`, { cook
 await check("stripe webhook 404 when unconfigured", "/api/stripe/webhook", { method: "POST", expect: 404 });
 await check("mock checkout 404 for unknown purchase", "/checkout/mock/nope", { cookie: learner, expect: 404 });
 
+// Discovery (v1.1: LEARN-14/15/16)
+{
+  await check("catalog search", "/?q=assessment", { contains: ["Assessment Design Basics", "matching"] });
+  const miss = await check("catalog search excludes non-matches", "/?q=assessment");
+  if (miss.text.includes("Introduction to Online Teaching")) { failures++; console.log("FAIL search returned non-matching course"); }
+  await check("catalog tag filter", "/?tag=assessment", { contains: ["Assessment Design Basics", "tagged #assessment"] });
+  await check("catalog level filter", "/?level=BEGINNER", { contains: ["Introduction to Online Teaching"] });
+  await check("catalog shows rating + featured", "/", { contains: ["4.5 (2)", "Featured", "#teaching", "Learning paths", "Become an Online Instructor"] });
+  await check("catalog no match", "/?q=zzzznotacourse", { contains: ["No courses match"] });
+  await check("paths list", "/paths", { contains: ["Become an Online Instructor", "2 courses"] });
+  await check("path detail (anon)", "/paths/online-instructor", { contains: ["Sign in to start", "Introduction to Online Teaching", "Assessment Design Basics"] });
+  await check("path detail (learner)", "/paths/online-instructor", { cookie: learner, contains: ["Start path"] });
+  await check("course landing reviews", `/courses/${course.slug}`, { cookie: learner, contains: ["Reviews", "Clear, practical", "Your review", "Update review", "#course-design"] });
+  await check("author paths", "/author/paths", { cookie: instructor, contains: ["Become an Online Instructor", "New path"] });
+  await check("author paths denied for learner", "/author/paths", { cookie: learner, expect: 307 });
+  const path = await db.learningPath.findUnique({ where: { slug: "online-instructor" } });
+  await check("author path editor", `/author/paths/${path.id}`, { cookie: instructor, contains: ["Courses in order", "Add a course", "Unpublish", "Delete path"] });
+  await check("course form has tags + level", `/author/${course.id}`, { cookie: instructor, contains: ["Tags", "Level"] });
+  await check("api: search", "/api/v1/courses?q=assessment&sort=rating", { cookie: learner, contains: ["assessment-design-basics", "\"sort\":\"rating\""] });
+  await check("api: paths", "/api/v1/paths", { cookie: learner, contains: ["online-instructor", "\"courseCount\":2"] });
+  await check("api: courses have rating + tags", "/api/v1/courses?tag=teaching", { cookie: learner, contains: ["\"tags\":[\"teaching\"", "\"rating\":{\"avg\":4.5,\"count\":2}"] });
+}
+
 // CSV export (ADMIN-5)
 await check("csv export (instructor)", `/author/${course.id}/learners/export`, { cookie: instructor, contains: ["name,email,enrolled_at", "learner@example.com", "quiz: Knowledge check"] });
 await check("csv export denied (learner)", `/author/${course.id}/learners/export`, { cookie: learner, expect: 403 });

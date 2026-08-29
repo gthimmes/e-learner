@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { createCourse, updateCourse } from "@/lib/actions/courses";
 import type { ActionState } from "@/lib/actions/auth";
 import { slugify } from "@/lib/utils";
-import { CURRENCIES } from "@/lib/constants";
+import { COURSE_LEVELS, COURSE_LEVEL_LABELS, CURRENCIES } from "@/lib/constants";
 import { Alert, Field, Input, Label, Textarea } from "./ui";
 import { SubmitButton } from "./SubmitButton";
 import { MediaUpload } from "./MediaUpload";
@@ -19,6 +19,8 @@ type CourseValues = {
   sequential?: boolean;
   priceCents?: number;
   currency?: string;
+  tags?: string;
+  level?: string;
 };
 
 export function CourseForm({ mode, course }: { mode: "create" | "edit"; course?: CourseValues }) {
@@ -92,6 +94,30 @@ export function CourseForm({ mode, course }: { mode: "create" | "edit"; course?:
           <img src={coverUrl} alt="" className="mt-2 aspect-[21/9] w-full max-w-md rounded-lg object-cover" />
         ) : null}
       </Field>
+
+      <div className="grid gap-2 sm:grid-cols-[1fr_200px]">
+        <Field>
+          <Label htmlFor="tags" hint="comma-separated, e.g. teaching, video, beginner">
+            Tags
+          </Label>
+          <Input id="tags" name="tags" defaultValue={(course?.tags ?? "").split(",").filter(Boolean).join(", ")} placeholder="teaching, course-design" />
+        </Field>
+        <Field>
+          <Label htmlFor="level">Level</Label>
+          <select
+            id="level"
+            name="level"
+            defaultValue={course?.level ?? "ALL"}
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          >
+            {COURSE_LEVELS.map((l) => (
+              <option key={l} value={l}>
+                {COURSE_LEVEL_LABELS[l]}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
 
       <div className="grid grid-cols-[1fr_120px] gap-2">
         <Field>

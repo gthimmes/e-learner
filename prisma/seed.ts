@@ -41,6 +41,9 @@ Anyone with something to teach: trainers, team leads, subject-matter experts.
       status: "PUBLISHED",
       publishedAt: new Date(),
       instructorId: instructor.id,
+      tags: "teaching,course-design,beginner",
+      level: "BEGINNER",
+      featured: true,
       coverUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=70",
       modules: {
         create: [
@@ -257,6 +260,7 @@ Thanks for taking the tour — now go build something!`,
       publishedAt: new Date(),
       instructorId: orgAdmin.id,
       organizationId: org.id,
+      tags: "onboarding,acme",
       modules: {
         create: [
           {
@@ -274,6 +278,133 @@ Thanks for taking the tour — now go build something!`,
     },
   });
 
+  // ---------- Phase 4: a second public course, reviews and a learning path ----------
+  await db.course.deleteMany({ where: { slug: "assessment-design-basics" } });
+  const assessment = await db.course.create({
+    data: {
+      slug: "assessment-design-basics",
+      title: "Assessment Design Basics",
+      summary: "Write quiz questions that actually measure understanding, and set fair pass marks.",
+      description: `## What you'll learn
+
+- Choosing between multiple choice, multi-select, true/false and short answer
+- Writing distractors that are plausible but wrong
+- Setting a pass mark and attempt limits without punishing learners
+
+## Prerequisites
+
+Take **Introduction to Online Teaching** first if you're new to course design.`,
+      status: "PUBLISHED",
+      publishedAt: new Date(Date.now() - 86_400_000),
+      instructorId: instructor.id,
+      tags: "teaching,assessment,quizzes",
+      level: "INTERMEDIATE",
+      coverUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=70",
+      modules: {
+        create: [
+          {
+            title: "Writing good questions",
+            position: 0,
+            lessons: {
+              create: [
+                {
+                  title: "What a question is for",
+                  type: "TEXT",
+                  position: 0,
+                  durationMin: 5,
+                  body: `## One question, one idea
+
+A good quiz question checks **one** thing. If a learner gets it wrong you should know *what* they misunderstood.
+
+| Type | Use when |
+| --- | --- |
+| Multiple choice | There is one best answer and good distractors |
+| Multiple select | Several things are true at once |
+| True / false | A common misconception needs confronting |
+| Short answer | Recall matters (a term, a number, a command) |`,
+                },
+                {
+                  title: "Distractors and pass marks",
+                  type: "TEXT",
+                  position: 1,
+                  durationMin: 6,
+                  body: `## Distractors
+
+Wrong answers should be **plausible**: things a learner who half-understood would pick.
+
+## Pass marks
+
+- 70 % is a sensible default for knowledge checks
+- Use unlimited attempts when the goal is learning, not certification
+- Show explanations after each attempt so a failed attempt still teaches`,
+                },
+                {
+                  title: "Check your understanding",
+                  type: "QUIZ",
+                  position: 2,
+                  durationMin: 4,
+                  passingScore: 60,
+                  body: "Two quick questions. **60%** to pass.",
+                  questions: {
+                    create: [
+                      {
+                        type: "SINGLE",
+                        position: 0,
+                        points: 1,
+                        prompt: "How many ideas should one quiz question test?",
+                        explanation: "One idea per question makes wrong answers diagnostic.",
+                        choices: { create: [{ text: "One", isCorrect: true, position: 0 }, { text: "As many as possible", isCorrect: false, position: 1 }] },
+                      },
+                      {
+                        type: "TRUE_FALSE",
+                        position: 1,
+                        points: 1,
+                        prompt: "Distractors should be obviously wrong so learners aren't tricked.",
+                        explanation: "Distractors should be plausible, not obvious.",
+                        choices: { create: [{ text: "True", isCorrect: false, position: 0 }, { text: "False", isCorrect: true, position: 1 }] },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  // Reviews (learner is enrolled in the intro course; enroll org staff too so they can review it).
+  await db.enrollment.upsert({
+    where: { userId_courseId: { userId: orgLearner.id, courseId: course.id } },
+    update: {},
+    create: { userId: orgLearner.id, courseId: course.id },
+  });
+  await db.review.upsert({
+    where: { userId_courseId: { userId: learner.id, courseId: course.id } },
+    update: { rating: 5, body: "Clear, practical and short. I built my first course the same afternoon." },
+    create: { userId: learner.id, courseId: course.id, rating: 5, body: "Clear, practical and short. I built my first course the same afternoon." },
+  });
+  await db.review.upsert({
+    where: { userId_courseId: { userId: orgLearner.id, courseId: course.id } },
+    update: { rating: 4, body: "Good overview. Would love more on video production." },
+    create: { userId: orgLearner.id, courseId: course.id, rating: 4, body: "Good overview. Would love more on video production." },
+  });
+
+  // Learning path bundling both public courses.
+  await db.learningPath.deleteMany({ where: { slug: "online-instructor" } });
+  await db.learningPath.create({
+    data: {
+      slug: "online-instructor",
+      title: "Become an Online Instructor",
+      summary: "From your first course outline to assessments that prove learning happened.",
+      description: "Two short courses, in order. Finish both to complete the path.",
+      status: "PUBLISHED",
+      createdById: instructor.id,
+      items: { create: [{ courseId: course.id, position: 0 }, { courseId: assessment.id, position: 1 }] },
+    },
+  });
+
   console.log("Seeded:");
   console.log(`  org admin  ${orgAdmin.email} / password123  (Acme Corp)`);
   console.log(`  org staff  ${orgLearner.email} / password123  (Acme Corp)`);
@@ -281,6 +412,8 @@ Thanks for taking the tour — now go build something!`,
   console.log(`  instructor ${instructor.email} / password123`);
   console.log(`  learner    ${learner.email} / password123`);
   console.log(`  course     /courses/${course.slug}`);
+  console.log(`  course     /courses/${assessment.slug}`);
+  console.log(`  path       /paths/online-instructor`);
 }
 
 main()

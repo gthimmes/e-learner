@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CURRENCIES, LESSON_TYPES, QUESTION_TYPES } from "./constants";
+import { COURSE_LEVELS, CURRENCIES, LESSON_TYPES, QUESTION_TYPES } from "./constants";
 
 export const registerSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
@@ -26,6 +26,42 @@ export const courseSchema = z.object({
   sequential: z.boolean().default(false),
   priceCents: z.coerce.number().int().min(0).max(1_000_000_00).default(0),
   currency: z.enum(CURRENCIES).default("usd"),
+  tags: z.string().max(300).default("").transform(normalizeTags),
+  level: z.enum(COURSE_LEVELS).default("ALL"),
+});
+
+/** "Data Science, python,Python , " -> "data-science,python" (max 10 tags, 30 chars each). */
+export function normalizeTags(input: string) {
+  const seen = new Set<string>();
+  for (const raw of input.split(/[,\n]/)) {
+    const t = raw
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 30);
+    if (t) seen.add(t);
+    if (seen.size >= 10) break;
+  }
+  return [...seen].join(",");
+}
+
+export const reviewSchema = z.object({
+  rating: z.coerce.number().int().min(1, "Pick a star rating").max(5),
+  body: z.string().trim().max(2000).default(""),
+});
+
+export const pathSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(120),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug may contain lowercase letters, numbers and hyphens")
+    .max(80),
+  summary: z.string().trim().max(300).default(""),
+  description: z.string().max(50_000).default(""),
+  coverUrl: z.string().trim().max(500).default(""),
 });
 
 /** "12.50" → 1250 cents; blank/invalid → 0. */

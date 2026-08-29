@@ -50,6 +50,9 @@ Priorities use MoSCoW: **M** must, **S** should, **C** could. "Phase" refers to
 | LEARN-11 | Admin/instructor can enroll learners directly (or by CSV). | S | 2 |
 | LEARN-12 | Cohorts with start/end dates and due dates. | C | 3 |
 | LEARN-13 | Per-lesson discussion / Q&A. | C | 3 |
+| LEARN-14 | Catalog search by keyword, filter by tag and level, sort by popularity / rating. | S | 4 |
+| LEARN-15 | Learning paths: ordered bundles of courses with path-level progress. | S | 4 |
+| LEARN-16 | Enrolled learners can rate (1–5) and review a course; averages shown in the catalog. | C | 4 |
 
 ## 4. Instructor & admin
 

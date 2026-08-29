@@ -90,6 +90,12 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - `startCheckout` validates the coupon server-side and computes the discounted amount; a 100 % coupon or a free course enrolls immediately. `enroll` (the free path) refuses paid courses without a PAID purchase.
 - Refunds (instructor action or Stripe `charge.refunded`) mark the purchase and delete the enrollment.
 
+### Discovery (v1.1)
+
+- `Course.tags` (comma-separated, normalised lowercase), `Course.level`, `Course.featured`. `lib/discovery.ts#searchCourses` builds a Prisma `AND` of the visibility filter, a keyword `OR` over title/summary/description/tags, tag and level filters, then sorts in memory (popular = enrollments, rating = average) and floats featured courses to the top. SQLite `contains` is a case-insensitive `LIKE`; on Postgres add `mode: "insensitive"`.
+- `Review` (one per user per course, only for enrolled learners) — averages come from a single `groupBy` per page render (`ratingsFor`).
+- `LearningPath` → `LearningPathItem` (ordered courses) and `PathEnrollment`. Path progress is computed from the learner's course enrollments (`getPathProgress`), which also stamps `PathEnrollment.completedAt` when every course is done. Visibility and edit rules mirror courses (`canViewPath` / `canEditPath`).
+
 ### Phase 3 adapters and safeguards
 
 - **Mail adapter** (`lib/mail.ts`): `ConsoleMailer` in dev, `SmtpMailer` (nodemailer) when `SMTP_URL` is set. Used by password reset and `scripts/send-reminders.ts` (cron-able).

@@ -34,6 +34,8 @@ export async function createCourse(_prev: ActionState, formData: FormData): Prom
     sequential: formBool(formData, "sequential"),
     priceCents: parsePriceCents(formStr(formData, "price")),
     currency: formStr(formData, "currency") || "usd",
+    tags: formStr(formData, "tags"),
+    level: formStr(formData, "level") || "ALL",
   });
   if (!parsed.success) return { error: firstIssue(parsed.error) };
   if (await isSlugTaken(parsed.data.slug)) return { error: "That slug is already in use." };
@@ -64,6 +66,8 @@ export async function updateCourse(_prev: ActionState, formData: FormData): Prom
     sequential: formBool(formData, "sequential"),
     priceCents: parsePriceCents(formStr(formData, "price")),
     currency: formStr(formData, "currency") || "usd",
+    tags: formStr(formData, "tags"),
+    level: formStr(formData, "level") || "ALL",
   });
   if (!parsed.success) return { error: firstIssue(parsed.error) };
   if (await isSlugTaken(parsed.data.slug, courseId)) return { error: "That slug is already in use." };

@@ -35,6 +35,24 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   SHORT: "Short answer",
 };
 
+export const COURSE_LEVELS = ["ALL", "BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
+export type CourseLevel = (typeof COURSE_LEVELS)[number];
+export const COURSE_LEVEL_LABELS: Record<CourseLevel, string> = {
+  ALL: "All levels",
+  BEGINNER: "Beginner",
+  INTERMEDIATE: "Intermediate",
+  ADVANCED: "Advanced",
+};
+
+export const CATALOG_SORTS = ["newest", "popular", "rating", "title"] as const;
+export type CatalogSort = (typeof CATALOG_SORTS)[number];
+export const CATALOG_SORT_LABELS: Record<CatalogSort, string> = {
+  newest: "Newest",
+  popular: "Most popular",
+  rating: "Top rated",
+  title: "A → Z",
+};
+
 export const CURRENCIES = ["usd", "eur", "gbp", "cad", "aud"] as const;
 
 export const WEBHOOK_EVENTS =["enrollment.created", "lesson.completed", "course.completed", "quiz.attempted"] as const;

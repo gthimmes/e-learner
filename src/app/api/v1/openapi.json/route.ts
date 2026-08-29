@@ -13,14 +13,19 @@ export async function GET() {
       status: { type: "string", enum: ["DRAFT", "PUBLISHED", "ARCHIVED"] },
       organizationId: { type: "string", nullable: true },
       instructor: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } } },
+      tags: { type: "array", items: { type: "string" } },
+      level: { type: "string", enum: ["ALL", "BEGINNER", "INTERMEDIATE", "ADVANCED"] },
+      priceCents: { type: "integer" },
+      currency: { type: "string" },
       lessonCount: { type: "integer" },
       durationMin: { type: "integer" },
       enrollmentCount: { type: "integer" },
+      rating: { type: "object", properties: { avg: { type: "number" }, count: { type: "integer" } } },
     },
   };
   return json({
     openapi: "3.0.3",
-    info: { title: "e-learner API", version: "1.0.0", description: "Authenticate with `Authorization: Bearer elk_…` (create keys under Integrations)." },
+    info: { title: "e-learner API", version: "1.1.0", description: "Authenticate with `Authorization: Bearer elk_…` (create keys under Integrations)." },
     servers: [{ url: appUrl("/api/v1") }],
     components: { securitySchemes: { apiKey: { type: "http", scheme: "bearer" } }, schemas: { Course: courseSchema } },
     security: [{ apiKey: [] }],
@@ -29,9 +34,18 @@ export async function GET() {
       "/courses": {
         get: {
           summary: "Courses visible to the caller (published; org-private courses only for members). Authors also see their drafts with `?mine=1`.",
-          parameters: [{ name: "mine", in: "query", schema: { type: "boolean" } }],
+          parameters: [
+            { name: "mine", in: "query", schema: { type: "boolean" } },
+            { name: "q", in: "query", schema: { type: "string" }, description: "Keyword search over title, summary, description and tags" },
+            { name: "tag", in: "query", schema: { type: "string" } },
+            { name: "level", in: "query", schema: { type: "string", enum: ["BEGINNER", "INTERMEDIATE", "ADVANCED"] } },
+            { name: "sort", in: "query", schema: { type: "string", enum: ["newest", "popular", "rating", "title"] } },
+          ],
           responses: { "200": { description: "List", content: { "application/json": { schema: { type: "object", properties: { courses: { type: "array", items: { $ref: "#/components/schemas/Course" } } } } } } } },
         },
+      },
+      "/paths": {
+        get: { summary: "Published learning paths visible to the caller, with ordered course ids", responses: { "200": { description: "{ paths: [...] }" } } },
       },
       "/courses/{courseId}": {
         get: { summary: "Course with full outline (modules and lessons)", parameters: [{ name: "courseId", in: "path", required: true, schema: { type: "string" } }], responses: { "200": { description: "Course" }, "404": { description: "Not found" } } },

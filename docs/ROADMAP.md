@@ -5,8 +5,8 @@ shippable release; nothing in a later phase is a prerequisite for using an earli
 
 **Status (2026-08-28):** Phases 1–3 ✅ shipped (v0.1–v1.0: authoring, media, learning,
 quizzes, gating, certificates, cohorts, discussion, orgs, SSO, versions, REST API, webhooks,
-xAPI, SCORM, payments). Phase 4 🔨 in progress — see the milestone table below for what has
-landed. Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
+xAPI, SCORM, payments). Phase 4 🔨 in progress — v1.1 ✅ (catalog search, tags/levels, sort, featured,
+ratings & reviews, learning paths, API search + paths). Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
 
 ## North-star goals (Phases 4–5)
 

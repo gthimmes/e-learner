@@ -30,6 +30,8 @@ model User {
   apiKeys        ApiKey[]
   webhooks       Webhook[]
   purchases      Purchase[]
+  reviews        Review[]
+  pathEnrollments PathEnrollment[]
 
   @@index([organizationId])
 }
@@ -45,6 +47,9 @@ model Course {
   sequential   Boolean   @default(false) // Phase 2: lessons must be completed in order
   priceCents   Int       @default(0) // 0 = free (Phase 3 commerce)
   currency     String    @default("usd")
+  tags         String    @default("") // Phase 4: comma-separated lowercase tags
+  level        String    @default("ALL") // ALL | BEGINNER | INTERMEDIATE | ADVANCED
+  featured     Boolean   @default(false)
   instructorId String
   organizationId String?
   createdAt    DateTime  @default(now())
@@ -60,6 +65,8 @@ model Course {
   versions     CourseVersion[]
   purchases    Purchase[]
   coupons      Coupon[]
+  reviews      Review[]
+  pathItems    LearningPathItem[]
 
   @@index([status])
   @@index([organizationId])
@@ -365,4 +372,68 @@ model Coupon {
   course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId])
+}
+
+// ---------- Phase 4: discovery (reviews, learning paths) ----------
+
+model Review {
+  id        String   @id @default(cuid())
+  courseId  String
+  userId    String
+  rating    Int // 1..5
+  body      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId, createdAt])
+}
+
+model LearningPath {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  summary        String   @default("")
+  description    String   @default("") // markdown
+  coverUrl       String?
+  status         String   @default("DRAFT") // DRAFT | PUBLISHED
+  createdById    String
+  organizationId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  items       LearningPathItem[]
+  enrollments PathEnrollment[]
+
+  @@index([status])
+  @@index([organizationId])
+}
+
+model LearningPathItem {
+  id       String @id @default(cuid())
+  pathId   String
+  courseId String
+  position Int
+
+  path   LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, courseId])
+  @@index([pathId, position])
+}
+
+model PathEnrollment {
+  id          String    @id @default(cuid())
+  pathId      String
+  userId      String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, userId])
 }
