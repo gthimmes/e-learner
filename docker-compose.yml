@@ -7,7 +7,9 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: file:/data/app.db
-      SESSION_SECRET: ${SESSION_SECRET:-change-me-please-32-chars-minimum}
+      # Namespaced on purpose: compose interpolates from the repo .env, and the dev
+      # SESSION_SECRET there is refused by production auth. Set ELEARNER_SESSION_SECRET.
+      SESSION_SECRET: ${ELEARNER_SESSION_SECRET:-change-me-please-32-chars-minimum}
       APP_URL: http://localhost:3000
       REDIS_URL: redis://redis:6379
       S3_BUCKET: elearner
@@ -16,7 +18,7 @@ services:
       S3_ACCESS_KEY_ID: minioadmin
       S3_SECRET_ACCESS_KEY: minioadmin
       S3_FORCE_PATH_STYLE: "1"
-      CRON_SECRET: ${CRON_SECRET:-local-cron-secret}
+      CRON_SECRET: ${ELEARNER_CRON_SECRET:-local-cron-secret}
     volumes:
       - app-data:/data
     depends_on:
@@ -51,7 +53,7 @@ services:
     depends_on:
       - app
     entrypoint: >
-      /bin/sh -c "while true; do sleep 300; curl -fsS -X POST -H 'Authorization: Bearer ${CRON_SECRET:-local-cron-secret}' http://app:3000/api/cron/webhooks || true; done"
+      /bin/sh -c "while true; do sleep 300; curl -fsS -X POST -H 'Authorization: Bearer ${ELEARNER_CRON_SECRET:-local-cron-secret}' http://app:3000/api/cron/webhooks || true; done"
 volumes:
   app-data:
   minio-data:

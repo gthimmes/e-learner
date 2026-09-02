@@ -105,7 +105,7 @@ the schema-sync check plus migrate → seed → build → the full HTTP smoke su
 Postgres 16 service on every push. After changing `prisma/schema.prisma`, run `npm run db:pg:schema`
 and regenerate the init migration with `npm run db:pg:diff > prisma/postgres/migrations/000000000000_init/migration.sql`.
 
-Or build the image alone (`docker build -t e-learner .`) and run it with `SESSION_SECRET`, `DATABASE_URL`, and optionally `REDIS_URL`, `S3_*`, `SMTP_URL`, `STRIPE_*`, `OIDC_*`, `CRON_SECRET`, `ERROR_REPORT_URL`. `GET /api/health` reports dependency status; schedule `POST /api/cron/webhooks` (or `npm run webhooks:process`) every few minutes to retry failed webhooks.
+For compose, set `ELEARNER_SESSION_SECRET` (namespaced so the dev `.env`'s `SESSION_SECRET` — which production auth refuses — can't leak into the container). Or build the image alone (`docker build -t e-learner .`) and run it with `SESSION_SECRET`, `DATABASE_URL`, and optionally `REDIS_URL`, `S3_*`, `SMTP_URL`, `STRIPE_*`, `OIDC_*`, `CRON_SECRET`, `ERROR_REPORT_URL`. `GET /api/health` reports dependency status; schedule `POST /api/cron/webhooks` (or `npm run webhooks:process`) every few minutes to retry failed webhooks.
 
 ## Stack
 
