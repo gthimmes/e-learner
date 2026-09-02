@@ -40,3 +40,46 @@ jobs:
           name: playwright-results
           path: test-results/
           retention-days: 7
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: elearner
+          POSTGRES_PASSWORD: elearner
+          POSTGRES_DB: elearner
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U elearner"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://elearner:elearner@localhost:5432/elearner
+      SESSION_SECRET: ci-secret-not-for-production
+      UPLOAD_DIR: ./uploads
+      MAX_UPLOAD_MB: "50"
+      APP_URL: http://localhost:3100
+      BASE: http://localhost:3100
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm install --no-audit --no-fund --ignore-scripts
+      - run: node scripts/make-postgres-schema.mjs --check
+      - run: npx prisma generate --schema prisma/postgres/schema.prisma
+      - run: npx prisma migrate deploy --schema prisma/postgres/schema.prisma
+      - run: npm run db:seed
+      - run: npm run build
+      - name: Smoke test against Postgres
+        run: |
+          (npm start -- --port 3100 &)
+          for i in $(seq 1 30); do curl -sf http://localhost:3100/api/health >/dev/null && break; sleep 2; done
+          node scripts/smoke.mjs

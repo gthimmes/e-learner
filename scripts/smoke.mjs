@@ -6,7 +6,7 @@ import http from "node:http";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 
 const BASE = process.env.BASE || "http://localhost:3100";
-const secret = new TextEncoder().encode("dev-only-change-me-in-production");
+const secret = new TextEncoder().encode(process.env.SESSION_SECRET || "dev-only-change-me-in-production");
 const db = new PrismaClient();
 
 async function cookieFor(email) {

@@ -38,7 +38,7 @@ for the things that vary between laptop and production (database, file storage, 
 | --- | --- | --- |
 | Framework | Next.js 16, React 19, TypeScript | One codebase for UI + server; RSC keeps data access on the server; server actions give CSRF-safe mutations without an API layer to maintain |
 | Styling | Tailwind CSS 4 | Fast to iterate, no runtime CSS, easy theming later |
-| Data | Prisma 6 + SQLite (dev) / PostgreSQL (prod) | Type-safe queries; the same schema runs on both engines; zero-setup local dev (NFR-1, NFR-2) |
+| Data | Prisma 6 + SQLite (dev) / PostgreSQL (prod) | One source schema; `prisma/postgres/` carries a generated Postgres variant + migrations (sync-checked in CI); the container entrypoint picks the right one from `DATABASE_URL` (NFR-1, NFR-2) |
 | Auth | Own credentials auth: bcrypt + `jose` signed JWT in an HTTP-only cookie | Small, auditable, no third-party lock-in; swappable for OIDC in Phase 3 |
 | Content | Markdown (GFM) rendered with `react-markdown` + `rehype-sanitize` | "Writing beats configuring"; sanitization prevents stored XSS (NFR-3) |
 | Media | Uploads via route handler → `StorageAdapter`; external video via YouTube / Vimeo embed | Local disk in dev, S3 in prod, same interface |
@@ -106,6 +106,17 @@ Enrollment ──< QuizAttempt ──< Answer     (Phase 2)
 - `ActivityDay` (one row per user per UTC day; `visits` from lesson views, `lessons` from completions) feeds `lib/streak.ts#computeStreak` (pure, unit-tested). A streak survives until the end of a day with no activity.
 - Points live on `User.points` (profile) and `Enrollment.points` (cohort leaderboards). `Badge` rows are unique per `(user, key, scope)`; `lib/engage.ts` has the catalogue and the `onLessonCompleted / onCourseCompleted / onQuizPassed / onPathCompleted / onReviewed` hooks called from the corresponding actions.
 - `Notification` (in-app, bell in the nav) and `Announcement` (per course; `publishAnnouncement` fans out notifications and, when asked, email through the mail adapter).
+
+### Verified on PostgreSQL (v2.3)
+
+- `scripts/make-postgres-schema.mjs` regenerates `prisma/postgres/schema.prisma` from the main
+  schema (datasource swapped); CI fails if they drift. The Postgres migration history is a single
+  squashed init migration (`npm run db:pg:diff`).
+- Provider differences handled in code: keyword search uses `mode: "insensitive"` only when
+  `DATABASE_URL` is Postgres (SQLite's `LIKE` is already case-insensitive for ASCII).
+- Verification: the full HTTP smoke suite (~150 checks) and all 11 Playwright specs run green
+  against Postgres 16 locally and in a dedicated CI job; `scripts/loadtest.mjs` results are in
+  `docs/PERF.md`.
 
 ### Operations (v1.4)
 

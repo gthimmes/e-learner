@@ -16,7 +16,10 @@ bodies, generate quiz questions, grounded learner tutor; Anthropic provider + de
 mock for dev/CI) · v2.1 ✅ (per-org branding, UI in EN/ES/FR with a locale switcher, automated
 WCAG 2.2 AA audit in e2e, installable PWA with offline lesson reading) · v2.2 ✅ (live sessions with
 RSVP, calendar invites (.ics by email and download), recordings pinned to lessons, bookable office
-hours). **Phase 5 complete — every planned milestone (v0.1 → v2.2) has shipped.** Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
+hours). **Phase 5 complete — every planned milestone (v0.1 → v2.2) has shipped.** Post-2.2 hardening
+(v2.3): first-class PostgreSQL (generated schema + migrations, CI job running the smoke suite
+against Postgres 16, docker-compose overlay, entrypoint auto-detect) and a load-test baseline
+(`docs/PERF.md`). Tests: unit, HTTP smoke, Playwright e2e (main flow, password reset, SSO, commerce).
 
 ## North-star goals (Phases 4–5)
 

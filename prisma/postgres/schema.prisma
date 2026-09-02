@@ -1,0 +1,596 @@
+// GENERATED from prisma/schema.prisma by scripts/make-postgres-schema.mjs — do not edit.
+// Same models, Postgres datasource. Regenerate after any change to the main schema.
+// e-learner data model. See docs/ARCHITECTURE.md for the entity overview.
+// Enum-like fields are strings so the same schema works on SQLite (dev) and Postgres (prod);
+// the allowed values live in src/lib/constants.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("LEARNER") // LEARNER | INSTRUCTOR | ADMIN
+  createdAt    DateTime @default(now())
+  organizationId String?
+  orgAdmin       Boolean  @default(false)
+
+  courses        Course[]
+  enrollments    Enrollment[]
+  comments       Comment[]
+  passwordResets PasswordReset[]
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  coAuthored     CourseAuthor[]
+  apiKeys        ApiKey[]
+  webhooks       Webhook[]
+  purchases      Purchase[]
+  reviews        Review[]
+  pathEnrollments PathEnrollment[]
+  points         Int            @default(0) // Phase 4 engagement
+  activityDays   ActivityDay[]
+  badges         Badge[]
+  notifications  Notification[]
+  announcements  Announcement[]
+  rsvps          SessionRsvp[]
+
+  @@index([organizationId])
+}
+
+model Course {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  title        String
+  summary      String    @default("")
+  description  String    @default("") // markdown
+  coverUrl     String?
+  status       String    @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  sequential   Boolean   @default(false) // Phase 2: lessons must be completed in order
+  priceCents   Int       @default(0) // 0 = free (Phase 3 commerce)
+  currency     String    @default("usd")
+  tags         String    @default("") // Phase 4: comma-separated lowercase tags
+  level        String    @default("ALL") // ALL | BEGINNER | INTERMEDIATE | ADVANCED
+  featured     Boolean   @default(false)
+  instructorId String
+  organizationId String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  publishedAt  DateTime?
+
+  instructor  User         @relation(fields: [instructorId], references: [id])
+  modules     Module[]
+  enrollments Enrollment[]
+  cohorts     Cohort[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  coAuthors    CourseAuthor[]
+  versions     CourseVersion[]
+  purchases    Purchase[]
+  coupons      Coupon[]
+  reviews      Review[]
+  pathItems    LearningPathItem[]
+  announcements Announcement[]
+  liveSessions  LiveSession[]
+  officeHours   OfficeHourSlot[]
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([instructorId])
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  courseId  String
+  title     String
+  summary   String   @default("")
+  position  Int
+  createdAt DateTime @default(now())
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId, position])
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  moduleId    String
+  title       String
+  type        String   @default("TEXT") // TEXT | VIDEO | AUDIO | IMAGE | FILE | QUIZ
+  body        String   @default("") // markdown
+  mediaUrl    String? // uploaded media key URL (/api/media/...) or external URL (YouTube/Vimeo)
+  mediaCaption String  @default("")
+  durationMin Int      @default(5)
+  position    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Quiz settings (Phase 2) — only meaningful when type = QUIZ
+  passingScore     Int     @default(70) // percent
+  maxAttempts      Int     @default(0) // 0 = unlimited
+  shuffleQuestions Boolean @default(false)
+  showAnswers      Boolean @default(true)
+  timeLimitMin     Int     @default(0) // Phase 4: 0 = untimed
+  drawCount        Int     @default(0) // Phase 4: questions per attempt drawn from the bank, 0 = all
+
+  module    Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress  LessonProgress[]
+  questions Question[]
+  attempts  QuizAttempt[]
+  comments  Comment[]
+  recordings LiveSession[]
+
+  @@index([moduleId, position])
+}
+
+model Enrollment {
+  id           String    @id @default(cuid())
+  userId       String
+  courseId     String
+  enrolledAt   DateTime  @default(now())
+  completedAt  DateTime?
+  lastLessonId String?
+  cohortId     String?
+  points       Int       @default(0) // Phase 4: per-course points for cohort leaderboards
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  cohort   Cohort?          @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  progress LessonProgress[]
+  attempts QuizAttempt[]
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model LessonProgress {
+  id           String   @id @default(cuid())
+  enrollmentId String
+  lessonId     String
+  completedAt  DateTime @default(now())
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId])
+}
+
+// ---------- Phase 2: assessment ----------
+
+model Question {
+  id          String   @id @default(cuid())
+  lessonId    String
+  type        String   @default("SINGLE") // SINGLE | MULTI | TRUE_FALSE | SHORT
+  prompt      String // markdown
+  explanation String   @default("")
+  answerText  String   @default("") // for SHORT: accepted answer(s), one per line
+  rubric      String   @default("") // for ESSAY: grading notes shown to the instructor
+  position    Int
+  points      Int      @default(1)
+
+  lesson  Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  choices Choice[]
+  answers Answer[]
+
+  @@index([lessonId, position])
+}
+
+model Choice {
+  id         String  @id @default(cuid())
+  questionId String
+  text       String
+  isCorrect  Boolean @default(false)
+  position   Int
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, position])
+}
+
+model QuizAttempt {
+  id           String   @id @default(cuid())
+  enrollmentId String
+  lessonId     String
+  score        Int // percent 0..100 (provisional while PENDING)
+  passed       Boolean
+  status       String   @default("GRADED") // IN_PROGRESS | PENDING (essays awaiting grading) | GRADED
+  deadline     DateTime? // timed quizzes
+  questionIds  String   @default("") // JSON array of question ids drawn for this attempt ("" = all)
+  startedAt    DateTime @default(now())
+  submittedAt  DateTime @default(now())
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  answers    Answer[]
+
+  @@index([enrollmentId, lessonId])
+}
+
+model Answer {
+  id         String  @id @default(cuid())
+  attemptId  String
+  questionId String
+  response   String // JSON: choice id(s) or text
+  correct    Boolean
+  pointsAwarded Int? // ESSAY: set by the grader; null = awaiting grading
+  feedback      String    @default("")
+  gradedAt      DateTime?
+
+  attempt  QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Phase 3: cohorts, discussion, password reset ----------
+
+model Cohort {
+  id        String    @id @default(cuid())
+  courseId  String
+  name      String
+  startsAt  DateTime  @default(now())
+  endsAt    DateTime?
+  dueAt     DateTime?
+  createdAt DateTime  @default(now())
+
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollments  Enrollment[]
+  liveSessions LiveSession[]
+
+  @@index([courseId])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  lessonId  String
+  userId    String
+  parentId  String?
+  body      String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  lesson  Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("Replies")
+
+  @@index([lessonId, createdAt])
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------- Phase 3: organizations & co-authors ----------
+
+model Organization {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  createdAt    DateTime @default(now())
+  logoUrl      String? // Phase 5 branding
+  primaryColor String   @default("") // hex like #0f766e; "" = platform default
+  tagline      String   @default("")
+
+  users   User[]
+  courses Course[]
+}
+
+model CourseAuthor {
+  id       String @id @default(cuid())
+  courseId String
+  userId   String
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+}
+
+// ---------- Phase 3: interop (versions, API keys, webhooks) ----------
+
+model CourseVersion {
+  id          String   @id @default(cuid())
+  courseId    String
+  number      Int
+  snapshot    String // JSON of course details + modules/lessons/questions at publish time
+  note        String   @default("")
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, number])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  prefix     String // first 8 chars, shown in the UI
+  keyHash    String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  secret    String
+  events    String // comma-separated event names, "*" for all
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([userId])
+}
+
+model WebhookDelivery {
+  id            String    @id @default(cuid())
+  webhookId     String
+  event         String
+  status        Int // last HTTP status, 0 = network error / not yet attempted
+  durationMs    Int       @default(0)
+  state         String    @default("DELIVERED") // PENDING | DELIVERED | FAILED (retrying) | DEAD
+  attempt       Int       @default(1)
+  nextAttemptAt DateTime?
+  payload       String    @default("") // JSON body, kept for retries and the dead-letter view
+  lastError     String    @default("")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId, createdAt])
+  @@index([state, nextAttemptAt])
+}
+
+// ---------- Phase 4: operations ----------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String   @default("")
+  action     String // e.g. course.publish, user.role, purchase.refund
+  targetType String   @default("")
+  targetId   String   @default("")
+  meta       String   @default("{}") // JSON
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}
+
+// ---------- Phase 3: commerce ----------
+
+model Purchase {
+  id                    String    @id @default(cuid())
+  userId                String
+  courseId              String
+  amountCents           Int
+  currency              String    @default("usd")
+  status                String    @default("PENDING") // PENDING | PAID | REFUNDED | CANCELED
+  provider              String    @default("mock") // mock | stripe
+  providerSessionId     String?   @unique
+  providerPaymentId     String?
+  couponCode            String?
+  createdAt             DateTime  @default(now())
+  paidAt                DateTime?
+  refundedAt            DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, courseId])
+  @@index([courseId, status])
+}
+
+model Coupon {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  percentOff Int // 1..100
+  courseId   String? // null = valid for any course the creator can edit
+  createdById String
+  maxUses    Int       @default(0) // 0 = unlimited
+  uses       Int       @default(0)
+  expiresAt  DateTime?
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+}
+
+// ---------- Phase 4: discovery (reviews, learning paths) ----------
+
+model Review {
+  id        String   @id @default(cuid())
+  courseId  String
+  userId    String
+  rating    Int // 1..5
+  body      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId, createdAt])
+}
+
+model LearningPath {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  summary        String   @default("")
+  description    String   @default("") // markdown
+  coverUrl       String?
+  status         String   @default("DRAFT") // DRAFT | PUBLISHED
+  createdById    String
+  organizationId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  items       LearningPathItem[]
+  enrollments PathEnrollment[]
+
+  @@index([status])
+  @@index([organizationId])
+}
+
+model LearningPathItem {
+  id       String @id @default(cuid())
+  pathId   String
+  courseId String
+  position Int
+
+  path   LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, courseId])
+  @@index([pathId, position])
+}
+
+model PathEnrollment {
+  id          String    @id @default(cuid())
+  pathId      String
+  userId      String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, userId])
+}
+
+// ---------- Phase 4: engagement (streaks, badges, notifications, announcements) ----------
+
+model ActivityDay {
+  id      String @id @default(cuid())
+  userId  String
+  day     String // YYYY-MM-DD (UTC)
+  lessons Int    @default(0) // lessons completed that day
+  visits  Int    @default(0) // lesson views that day
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+}
+
+model Badge {
+  id       String   @id @default(cuid())
+  userId   String
+  key      String // see BADGES in src/lib/engage.ts
+  courseId String   @default("") // per-course badges (COURSE_COMPLETE); "" for global ones
+  earnedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key, courseId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String // announcement | badge | grade | reminder | system
+  title     String
+  body      String    @default("")
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  courseId  String
+  authorId  String
+  title     String
+  body      String   @default("") // markdown
+  emailed   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, createdAt])
+}
+
+// ---------- Phase 5: live sessions & office hours ----------
+
+model LiveSession {
+  id           String   @id @default(cuid())
+  courseId     String
+  cohortId     String? // null = everyone enrolled
+  lessonId     String? // recording is shown on this lesson
+  title        String
+  description  String   @default("")
+  startsAt     DateTime
+  endsAt       DateTime
+  joinUrl      String   @default("")
+  recordingUrl String   @default("")
+  createdById  String
+  createdAt    DateTime @default(now())
+
+  course Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  cohort Cohort?       @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  lesson Lesson?       @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  rsvps  SessionRsvp[]
+
+  @@index([courseId, startsAt])
+}
+
+model SessionRsvp {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  status    String   @default("GOING") // GOING | MAYBE | NO
+  createdAt DateTime @default(now())
+
+  session LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+}
+
+model OfficeHourSlot {
+  id         String   @id @default(cuid())
+  courseId   String
+  hostId     String
+  startsAt   DateTime
+  endsAt     DateTime
+  bookedById String?
+  note       String   @default("")
+  createdAt  DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, startsAt])
+}

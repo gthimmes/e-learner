@@ -49,6 +49,16 @@ export async function getMyReview(userId: string, courseId: string) {
 
 // ---------- Catalog search (LEARN-14) ----------
 
+/**
+ * SQLite's LIKE is case-insensitive for ASCII, Postgres' is not; Prisma only accepts
+ * `mode: "insensitive"` when the client was generated for Postgres, hence the loose typing here.
+ */
+function ciContains(field: "title" | "summary" | "description" | "tags", q: string): Prisma.CourseWhereInput {
+  const filter: Record<string, unknown> = { contains: q };
+  if (process.env.DATABASE_URL?.startsWith("postgres")) filter.mode = "insensitive";
+  return { [field]: filter } as Prisma.CourseWhereInput;
+}
+
 export type CatalogQuery = { q?: string; tag?: string; level?: string; sort?: string };
 
 export function normalizeCatalogQuery(raw: CatalogQuery) {
@@ -62,7 +72,7 @@ export function normalizeCatalogQuery(raw: CatalogQuery) {
 export async function searchCourses(user: SessionUser | null, raw: CatalogQuery) {
   const { q, tag, level, sort } = normalizeCatalogQuery(raw);
   const and: Prisma.CourseWhereInput[] = [visibleCoursesWhere(user)];
-  if (q) and.push({ OR: [{ title: { contains: q } }, { summary: { contains: q } }, { description: { contains: q } }, { tags: { contains: q } }] });
+  if (q) and.push({ OR: [ciContains("title", q), ciContains("summary", q), ciContains("description", q), ciContains("tags", q.toLowerCase())] });
   if (tag) and.push({ tags: { contains: tag } });
   if (level) and.push({ level });
 

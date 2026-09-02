@@ -82,9 +82,28 @@ A scripted product walkthrough recording lives in `scripts/demo/` (see its READM
 ## Deploy
 
 ```bash
-docker compose up --build        # app on :3000 with Redis + MinIO (S3) + a webhook retry scheduler
+docker compose up --build        # app on :3000 (SQLite volume) with Redis + MinIO (S3) + a webhook retry scheduler
 docker compose exec app npm run db:seed
+
+# …or on PostgreSQL:
+docker compose -f docker-compose.yml -f docker-compose.postgres.yml up --build
 ```
+
+### PostgreSQL
+
+SQLite is the zero-setup dev default; PostgreSQL is first-class for production. `prisma/postgres/`
+holds a generated schema (same models, Postgres datasource — kept in sync by
+`npm run db:pg:schema`, verified in CI) and its own migration history. To run on Postgres:
+
+```bash
+export DATABASE_URL=postgres://user:pass@host:5432/elearner
+npm run db:pg:generate && npm run db:pg:deploy && npm run db:seed
+```
+
+The Docker entrypoint does this automatically when `DATABASE_URL` is a `postgres://` URL. CI runs
+the schema-sync check plus migrate → seed → build → the full HTTP smoke suite against a real
+Postgres 16 service on every push. After changing `prisma/schema.prisma`, run `npm run db:pg:schema`
+and regenerate the init migration with `npm run db:pg:diff > prisma/postgres/migrations/000000000000_init/migration.sql`.
 
 Or build the image alone (`docker build -t e-learner .`) and run it with `SESSION_SECRET`, `DATABASE_URL`, and optionally `REDIS_URL`, `S3_*`, `SMTP_URL`, `STRIPE_*`, `OIDC_*`, `CRON_SECRET`, `ERROR_REPORT_URL`. `GET /api/health` reports dependency status; schedule `POST /api/cron/webhooks` (or `npm run webhooks:process`) every few minutes to retry failed webhooks.
 
@@ -101,6 +120,8 @@ SQLite (dev) / PostgreSQL (prod) · `jose` sessions · `react-markdown` + `rehyp
 | `npm run build` / `npm start` | Production build / serve |
 | `npm run db:migrate` | Create & apply a migration (`prisma migrate dev`) |
 | `npm run db:seed` | Seed demo data (idempotent) |
+| `npm run db:pg:schema` / `db:pg:generate` / `db:pg:deploy` | Sync / generate / migrate the PostgreSQL schema |
+| `npm run loadtest` | Dependency-free load test against a running `next start` (see docs/PERF.md) |
 | `npm run db:reset` | Drop, re-migrate and re-seed |
 | `npm run typecheck` / `npm run lint` | Static checks |
 
@@ -110,7 +131,7 @@ Copy `.env.example` to `.env`:
 
 | Variable | Default | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` | `file:./dev.db` | For Postgres, set the URL and change `provider` in `prisma/schema.prisma` |
+| `DATABASE_URL` | `file:./dev.db` | Set a `postgres://…` URL to run on PostgreSQL (see below) |
 | `SESSION_SECRET` | dev value | **Change in production** — the app refuses to start with the dev value |
 | `UPLOAD_DIR` | `./uploads` | Local media storage (git-ignored) |
 | `MAX_UPLOAD_MB` | `200` | Upload size limit |

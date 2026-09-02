@@ -32,5 +32,5 @@ COPY --from=build --chown=node:node /app/next.config.ts ./
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD curl -fsS http://localhost:3000/api/health || exit 1
-# Apply migrations on start, then serve.
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start -- --port ${PORT}"]
+# Entrypoint migrates (SQLite or Postgres, from DATABASE_URL) and serves.
+CMD ["sh", "/app/scripts/docker-entrypoint.sh"]

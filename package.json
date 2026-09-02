@@ -16,7 +16,12 @@
     "test:smoke": "node scripts/smoke.mjs",
     "test": "node --import tsx --test tests/**/*.test.ts",
     "test:e2e": "playwright test",
-    "webhooks:process": "tsx scripts/process-webhooks.ts"
+    "webhooks:process": "tsx scripts/process-webhooks.ts",
+    "db:pg:schema": "node scripts/make-postgres-schema.mjs",
+    "db:pg:generate": "prisma generate --schema prisma/postgres/schema.prisma",
+    "db:pg:deploy": "prisma migrate deploy --schema prisma/postgres/schema.prisma",
+    "db:pg:diff": "node scripts/make-postgres-schema.mjs && prisma migrate diff --from-empty --to-schema-datamodel prisma/postgres/schema.prisma --script",
+    "loadtest": "node scripts/loadtest.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
