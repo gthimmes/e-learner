@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /**
  * v2.1: automated WCAG 2.2 AA audit (axe-core) over the main learner and author surfaces.
@@ -23,7 +24,7 @@ async function login(page: Page, email: string) {
 }
 
 test("public and learner pages pass WCAG 2.2 AA", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const course = await db.course.findUniqueOrThrow({ where: { slug: "intro-to-online-teaching" }, include: { modules: { orderBy: { position: "asc" }, include: { lessons: { orderBy: { position: "asc" } } } } } });
   await db.$disconnect();
   const lesson = course.modules[0]!.lessons[0]!;
@@ -51,7 +52,7 @@ test("public and learner pages pass WCAG 2.2 AA", async ({ page }) => {
 });
 
 test("author pages pass WCAG 2.2 AA", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const course = await db.course.findUniqueOrThrow({ where: { slug: "intro-to-online-teaching" }, include: { modules: { orderBy: { position: "asc" }, include: { lessons: { orderBy: { position: "asc" } } } } } });
   await db.$disconnect();
   const quiz = course.modules[2]!.lessons[1]!;

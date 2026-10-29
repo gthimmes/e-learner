@@ -1,7 +1,8 @@
 // Removes artifacts left behind by Playwright specs / demo recordings in the local dev DB.
 // Usage: node scripts/cleanup-test-data.mjs
 import { PrismaClient } from "@prisma/client";
-const db = new PrismaClient();
+import { createAdapter } from "../prisma/adapter.mjs";
+const db = new PrismaClient({ adapter: createAdapter() });
 const courses = await db.course.deleteMany({
   where: { OR: [{ title: { startsWith: "E2E Course" } }, { title: { startsWith: "Discover Course" } }, { title: { startsWith: "Paid Course" } }, { title: { startsWith: "Assess Course" } }, { title: { startsWith: "Engage Course" } }, { title: { startsWith: "Live Course" } }, { slug: { startsWith: "e2e-" } }, { slug: { startsWith: "disc-" } }, { slug: { startsWith: "paid-" } }] },
 });

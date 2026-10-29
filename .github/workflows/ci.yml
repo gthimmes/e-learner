@@ -72,7 +72,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm install --no-audit --no-fund --ignore-scripts
+      - run: npm install --no-audit --no-fund
       - run: node scripts/make-postgres-schema.mjs --check
       - run: npx prisma generate --schema prisma/postgres/schema.prisma
       - run: npx prisma migrate deploy --schema prisma/postgres/schema.prisma

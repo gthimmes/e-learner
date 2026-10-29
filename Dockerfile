@@ -3,9 +3,11 @@
 # Run:    docker run -p 3000:3000 -e SESSION_SECRET=... -e DATABASE_URL=file:/data/app.db -v elearner-data:/data e-learner
 FROM node:24-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma
-RUN npm install --no-audit --no-fund --ignore-scripts && npx prisma generate
+# better-sqlite3 (Prisma 7 SQLite adapter) is native: fetch/build its binary explicitly
+# since --ignore-scripts skips it. Build tools are a fallback when no musl prebuild exists.
+RUN apk add --no-cache python3 make g++ \n && npm install --no-audit --no-fund --ignore-scripts \n && npm rebuild better-sqlite3 \n && npx prisma generate
 
 FROM node:24-alpine AS build
 WORKDIR /app
@@ -28,7 +30,7 @@ COPY --from=build --chown=node:node /app/.next ./.next
 COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/prisma ./prisma
 COPY --from=build --chown=node:node /app/scripts ./scripts
-COPY --from=build --chown=node:node /app/next.config.ts ./
+COPY --from=build --chown=node:node /app/next.config.ts /app/prisma.config.ts ./
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD curl -fsS http://localhost:3000/api/health || exit 1

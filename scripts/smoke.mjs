@@ -2,12 +2,13 @@
 // HTTP smoke test against the running dev server. Mints session cookies directly.
 import { SignJWT } from "jose";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../prisma/adapter.mjs";
 import http from "node:http";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 
 const BASE = process.env.BASE || "http://localhost:3100";
 const secret = new TextEncoder().encode(process.env.SESSION_SECRET || "dev-only-change-me-in-production");
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createAdapter() });
 
 async function cookieFor(email) {
   const u = await db.user.findUnique({ where: { email } });

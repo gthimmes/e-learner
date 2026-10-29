@@ -4,9 +4,10 @@
  *   npx tsx scripts/send-reminders.ts [--days 3] [--dry-run]
  */
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../prisma/adapter.mjs";
 import nodemailer from "nodemailer";
 
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createAdapter() });
 const args = process.argv.slice(2);
 const days = Number(args[args.indexOf("--days") + 1]) || 3;
 const dryRun = args.includes("--dry-run");

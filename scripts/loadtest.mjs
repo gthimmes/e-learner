@@ -8,6 +8,7 @@
  */
 import { SignJWT } from "jose";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../prisma/adapter.mjs";
 
 const arg = (name, dflt) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -19,7 +20,7 @@ const SECONDS = Number(arg("seconds", "15"));
 const SIGNED_IN = process.argv.includes("--signed-in");
 const SECRET = process.env.SESSION_SECRET || "dev-only-change-me-in-production";
 
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createAdapter() });
 const course = await db.course.findFirst({ where: { slug: "intro-to-online-teaching" }, include: { modules: { orderBy: { position: "asc" }, include: { lessons: { orderBy: { position: "asc" } } } } } });
 if (!course) {
   console.error("Seed the database first (npm run db:seed).");

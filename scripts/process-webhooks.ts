@@ -5,8 +5,9 @@
  */
 import { createHmac } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../prisma/adapter.mjs";
 
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createAdapter() });
 const args = process.argv.slice(2);
 const limit = Number(args[args.indexOf("--limit") + 1]) || 100;
 const BACKOFF_MS = [60_000, 5 * 60_000, 30 * 60_000, 2 * 3_600_000, 12 * 3_600_000];

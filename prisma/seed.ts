@@ -2,8 +2,9 @@
    Run with `npm run db:seed`. Idempotent — re-running updates in place. */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { createAdapter } from "./adapter.mjs";
 
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createAdapter() });
 
 async function upsertUser(email: string, name: string, role: string, password: string) {
   const passwordHash = await bcrypt.hash(password, 10);

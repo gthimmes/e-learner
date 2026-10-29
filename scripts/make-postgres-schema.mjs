@@ -15,7 +15,7 @@ const HEADER = `// GENERATED from prisma/schema.prisma by scripts/make-postgres-
 const src = readFileSync("prisma/schema.prisma", "utf8");
 const swapped = src.replace(
   /datasource db \{[^}]*\}/,
-  'datasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n}',
+  'datasource db {\n  provider = "postgresql"\n}',
 );
 if (swapped === src) {
   console.error("Could not find the datasource block to swap.");
