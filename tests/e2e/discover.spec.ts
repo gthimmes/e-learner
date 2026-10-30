@@ -1,12 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /**
  * v1.1 discovery: instructor builds a learning path from two courses → learner searches the
  * catalog by keyword and tag, starts the path, and reviews a course.
  */
 test("search, learning path and reviews", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const stamp = Date.now();
   const instructor = await db.user.findUniqueOrThrow({ where: { email: "instructor@example.com" } });
   const mk = (n: number) =>

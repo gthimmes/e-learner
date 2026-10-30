@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /**
  * v2.2 Live: instructor schedules a session (invite → notification) and opens office hours;
@@ -7,7 +8,7 @@ import { PrismaClient } from "@prisma/client";
  * and the learner sees it there.
  */
 test("live session, calendar invite, office hours, recording", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const stamp = Date.now();
   const instructor = await db.user.findUniqueOrThrow({ where: { email: "instructor@example.com" } });
   const course = await db.course.create({

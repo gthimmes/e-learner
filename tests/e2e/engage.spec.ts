@@ -1,12 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /**
  * v1.3 Engage: completing a lesson earns points, a streak day and the "First step" badge;
  * an instructor announcement lands in the learner's notifications.
  */
 test("streak, badge, notifications and announcements", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const stamp = Date.now();
   const instructor = await db.user.findUniqueOrThrow({ where: { email: "instructor@example.com" } });
   const course = await db.course.create({

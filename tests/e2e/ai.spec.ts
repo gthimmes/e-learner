@@ -1,12 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /**
  * v2.0 Copilot (mock provider in CI): instructor drafts a whole course from a prompt, generates
  * quiz questions, drafts a lesson body; a learner asks the grounded tutor.
  */
 test("draft a course with AI, generate questions, ask the tutor", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const stamp = Date.now();
   const topic = `Zebra husbandry ${stamp}`;
   const learnerEmail = `ai-${stamp}@example.com`;

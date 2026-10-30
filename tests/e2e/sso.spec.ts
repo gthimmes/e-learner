@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 import { startMockIdp } from "../../scripts/mock-oidc.mjs";
 
 /**
@@ -8,7 +9,7 @@ import { startMockIdp } from "../../scripts/mock-oidc.mjs";
  */
 test("sign in with SSO creates the user and starts a session", async ({ page }) => {
   const idp = await startMockIdp(3400, "e-learner");
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const email = process.env.MOCK_OIDC_EMAIL || "sso@example.com";
   await db.user.deleteMany({ where: { email } });
 

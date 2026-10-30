@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { createHash, randomBytes } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /** Password reset (AUTH-6): request → (token from DB, since dev mail goes to the console) → set password → sign in. */
 test("forgot / reset password", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const email = `reset-${Date.now()}@example.com`;
   const user = await db.user.create({ data: { email, name: "Reset Tester", passwordHash: "x" } });
 

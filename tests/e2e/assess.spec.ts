@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /**
  * v1.2 Assess II: a timed quiz with an essay → learner starts it (countdown visible), submits,
@@ -7,7 +8,7 @@ import { PrismaClient } from "@prisma/client";
  * completes.
  */
 test("timed quiz with essay is graded by the instructor", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const stamp = Date.now();
   const instructor = await db.user.findUniqueOrThrow({ where: { email: "instructor@example.com" } });
   const course = await db.course.create({

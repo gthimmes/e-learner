@@ -1,12 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import { createAdapter } from "../../prisma/adapter.mjs";
 
 /**
  * v1.0 commerce with the mock payment provider: paid course → coupon → checkout → enrolled →
  * instructor sees the sale → refund removes the enrollment.
  */
 test("buy a paid course with a coupon, then refund", async ({ page }) => {
-  const db = new PrismaClient();
+  const db = new PrismaClient({ adapter: createAdapter() });
   const stamp = Date.now();
   const instructor = await db.user.findUniqueOrThrow({ where: { email: "instructor@example.com" } });
   const course = await db.course.create({
