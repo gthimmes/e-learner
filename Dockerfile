@@ -7,7 +7,10 @@ COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma
 # better-sqlite3 (Prisma 7 SQLite adapter) is native: fetch/build its binary explicitly
 # since --ignore-scripts skips it. Build tools are a fallback when no musl prebuild exists.
-RUN apk add --no-cache python3 make g++ \n && npm install --no-audit --no-fund --ignore-scripts \n && npm rebuild better-sqlite3 \n && npx prisma generate
+RUN apk add --no-cache python3 make g++ \
+ && npm install --no-audit --no-fund --ignore-scripts \
+ && npm rebuild better-sqlite3 \
+ && npx prisma generate
 
 FROM node:24-alpine AS build
 WORKDIR /app
